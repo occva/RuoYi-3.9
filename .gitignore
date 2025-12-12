@@ -41,6 +41,36 @@ nbdist/
 *.log
 *.xml.versionsBackup
 *.swp
+*.bak
+*.backup
+*~
+pom.xml~
+
+# Windows特殊文件
+nul
+NUL
+CON
+PRN
+AUX
+COM1
+COM2
+COM3
+COM4
+LPT1
+LPT2
+LPT3
+
+# Claude AI 相关
+.claude/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 文档文件（可选，如果需要提交文档可以注释掉）
+# *.md
 
 !*/build/*.java
 !*/build/*.html

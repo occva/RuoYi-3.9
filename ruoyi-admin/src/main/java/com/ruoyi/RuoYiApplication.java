@@ -2,6 +2,7 @@ package com.ruoyi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -32,6 +33,11 @@ public class RuoYiApplication
         
         // System.setProperty("spring.devtools.restart.enabled", "false");
         SpringApplication application = new SpringApplication(RuoYiApplication.class);
+
+        // Spring Boot 3.0 性能优化配置
+        application.setBannerMode(Banner.Mode.OFF);  // 关闭横幅输出，减少启动时间
+        application.setRegisterShutdownHook(true);  // 启用优雅关闭
+        application.setLogStartupInfo(false);  // 关闭启动信息日志，减少冗余输出
         
         // 添加应用启动完成监听器
         application.addListeners((ApplicationListener<ApplicationReadyEvent>) event -> {

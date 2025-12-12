@@ -113,20 +113,21 @@ public class MyBatisConfig
         return resources.toArray(new Resource[resources.size()]);
     }
 
-    @Bean
-    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception
-    {
-        String typeAliasesPackage = env.getProperty("mybatis.typeAliasesPackage");
-        String mapperLocations = env.getProperty("mybatis.mapperLocations");
-        String configLocation = env.getProperty("mybatis.configLocation");
-        typeAliasesPackage = setTypeAliasesPackage(typeAliasesPackage);
-        VFS.addImplClass(SpringBootVFS.class);
+    // 注释掉手动配置的SqlSessionFactory，使用MyBatis Spring Boot Starter的自动配置
+    // @Bean
+    // public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception
+    // {
+    //     String typeAliasesPackage = env.getProperty("mybatis.typeAliasesPackage");
+    //     String mapperLocations = env.getProperty("mybatis.mapperLocations");
+    //     String configLocation = env.getProperty("mybatis.configLocation");
+    //     typeAliasesPackage = setTypeAliasesPackage(typeAliasesPackage);
+    //     VFS.addImplClass(SpringBootVFS.class);
 
-        final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
-        sessionFactory.setDataSource(dataSource);
-        sessionFactory.setTypeAliasesPackage(typeAliasesPackage);
-        sessionFactory.setMapperLocations(resolveMapperLocations(StringUtils.split(mapperLocations, ",")));
-        sessionFactory.setConfigLocation(new DefaultResourceLoader().getResource(configLocation));
-        return sessionFactory.getObject();
-    }
+    //     final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
+    //     sessionFactory.setDataSource(dataSource);
+    //     sessionFactory.setTypeAliasesPackage(typeAliasesPackage);
+    //     sessionFactory.setMapperLocations(resolveMapperLocations(StringUtils.split(mapperLocations, ",")));
+    //     sessionFactory.setConfigLocation(new DefaultResourceLoader().getResource(configLocation));
+    //     return sessionFactory.getObject();
+    // }
 }

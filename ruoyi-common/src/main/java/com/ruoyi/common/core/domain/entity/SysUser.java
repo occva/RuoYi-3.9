@@ -2,7 +2,10 @@ package com.ruoyi.common.core.domain.entity;
 
 import java.util.Date;
 import java.util.List;
-import javax.validation.constraints.*;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.fasterxml.jackson.annotation.JsonProperty;

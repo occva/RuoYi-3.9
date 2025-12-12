@@ -51,6 +51,9 @@ spring:
   messages:
     # 国际化资源文件路径
     basename: i18n/messages
+  # Spring Boot 3.0 懒加载配置
+  main:
+    lazy-initialization: true  # 启用全局懒加载，减少启动时间
   profiles:
     active: druid
   # 文件上传
@@ -87,6 +90,13 @@ spring:
         max-active: 8
         # #连接池最大阻塞等待时间（使用负值表示没有限制）
         max-wait: -1ms
+
+# 日志配置（统一在logback.xml中管理）
+# 注意：Spring Boot 3.0 建议使用logback.xml统一管理日志配置
+# logging:
+#   level:
+#     com.ruoyi: debug
+#     org.springframework: warn
 
 # token配置
 token:
@@ -138,3 +148,10 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# 防止CSRF攻击
+referer:
+  # 过滤开关
+  enabled: false
+  # 允许的域名
+  allowed-domains: localhost

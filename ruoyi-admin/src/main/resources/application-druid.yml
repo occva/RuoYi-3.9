@@ -39,7 +39,16 @@ spring:
             testWhileIdle: true
             testOnBorrow: false
             testOnReturn: false
-            webStatFilter: 
+            # Spring Boot 3.0 性能优化配置
+            # 连接池预编译语句缓存大小
+            poolPreparedStatements: true
+            maxPoolPreparedStatementPerConnectionSize: 20
+            # 使用非公平锁提高并发性能
+            useUnfairLock: true
+            # 是否缓存preparedStatement，PSCache对支持游标的数据库性能提升巨大
+            defaultAutoCommit: true
+
+            webStatFilter:
                 enabled: true
             statViewServlet:
                 enabled: true

@@ -3,14 +3,28 @@
     <!-- 日志存放路径 -->
     <property name="log.path" value="D:/new/atguigu/logs" />
 
-    <!-- 日志输出格式 -->
-	<property name="log.pattern" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{20} - [%method,%line] - %msg%n" />
+    <!-- 优化后的日志输出格式 - Spring Boot 3.0 推荐格式 -->
+    <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
-	<!-- 控制台输出 -->
+    <!-- 简化的控制台日志格式，提高性能 -->
+    <property name="console.pattern" value="%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{20}) - %msg%n" />
+
+	<!-- 控制台输出 - 使用优化的格式和异步输出 -->
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>${log.pattern}</pattern>
+			<pattern>${console.pattern}</pattern>
+			<charset>UTF-8</charset>
 		</encoder>
+	</appender>
+
+	<!-- 异步控制台输出 - Spring Boot 3.0 性能优化 -->
+	<appender name="async_console" class="ch.qos.logback.classic.AsyncAppender">
+		<!-- 不丢失WARN级别以下的日志 -->
+		<discardingThreshold>0</discardingThreshold>
+		<!-- 更改默认的队列的深度，该值会影响性能 -->
+		<queueSize>1024</queueSize>
+		<!-- 添加附加的appender -->
+		<appender-ref ref="console"/>
 	</appender>
 	
 	<!-- 系统日志输出 -->
@@ -72,13 +86,26 @@
         </encoder>
     </appender>
 	
-	<!-- 系统模块日志级别控制  -->
-	<logger name="com.ruoyi" level="info" />
-	<!-- Spring日志级别控制  -->
-	<logger name="org.springframework" level="warn" />
+	<!-- Spring Boot 3.0 优化的日志级别配置 -->
+	<!-- 系统模块日志级别控制 - 开发环境使用DEBUG级别 -->
+	<logger name="com.ruoyi" level="DEBUG" />
+	<!-- Spring框架日志级别控制 - 减少冗余日志 -->
+	<logger name="org.springframework" level="WARN" />
+	<!-- Spring Web日志级别 -->
+	<logger name="org.springframework.web" level="INFO" />
+	<!-- Hibernate日志级别 -->
+	<logger name="org.hibernate" level="WARN" />
+	<!-- Tomcat日志级别 -->
+	<logger name="org.apache.tomcat" level="INFO" />
+	<!-- Druid连接池日志级别 -->
+	<logger name="com.alibaba.druid" level="INFO" />
+	<!-- MyBatis SQL日志 - 生产环境建议设为WARN -->
+	<logger name="com.ruoyi.*.mapper" level="DEBUG" />
+	<logger name="org.mybatis" level="WARN" />
 
-	<root level="info">
-		<appender-ref ref="console" />
+	<!-- 根日志级别 - 使用异步控制台输出提高性能 -->
+	<root level="INFO">
+		<appender-ref ref="async_console" />
 	</root>
 	
 	<!--系统操作日志-->

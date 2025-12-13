@@ -24,7 +24,7 @@ import com.ruoyi.common.utils.html.EscapeUtil;
  * 
  * @author ruoyi
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = {"com.ruoyi.web.controller", "com.ruoyi.quartz.controller", "com.ruoyi.generator.controller"})
 public class GlobalExceptionHandler
 {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);

@@ -23,6 +23,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * token验证处理
@@ -171,6 +173,35 @@ public class TokenService
     }
 
     /**
+     * 获取密钥，确保密钥长度至少32字节（256位）
+     * 如果密钥长度不足，使用SHA-256哈希来生成32字节的密钥
+     *
+     * @return SecretKey
+     */
+    private SecretKey getSecretKey()
+    {
+        byte[] keyBytes = secret.getBytes();
+        // JWT要求密钥至少32字节（256位）
+        if (keyBytes.length < 32)
+        {
+            try
+            {
+                // 使用SHA-256哈希来生成32字节的密钥
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                keyBytes = digest.digest(keyBytes);
+            }
+            catch (NoSuchAlgorithmException e)
+            {
+                log.error("SHA-256算法不可用", e);
+                // 如果SHA-256不可用，使用Keys.hmacShaKeyFor会自动处理
+                // 但为了确保长度，我们使用Jwts.SIG.HS256.key()生成
+                return Jwts.SIG.HS256.key().build();
+            }
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
      * 从数据声明生成令牌
      *
      * @param claims 数据声明
@@ -178,7 +209,7 @@ public class TokenService
      */
     private String createToken(Map<String, Object> claims)
     {
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
+        SecretKey key = getSecretKey();
         String token = Jwts.builder()
                 .claims(claims)
                 .signWith(key)
@@ -194,7 +225,7 @@ public class TokenService
      */
     private Claims parseToken(String token)
     {
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
+        SecretKey key = getSecretKey();
         return Jwts.parser()
                 .verifyWith(key)
                 .build()

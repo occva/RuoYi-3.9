@@ -55,8 +55,18 @@
 
     <select id="selectActivityByClubId" parameterType="Long" resultMap="ClubActivityResult">
         <include refid="selectClubActivityVo"/>
-        where a.club_id = #{clubId} and a.del_flag = '0' and a.is_public = '1'
+        where a.club_id = #{clubId} and a.del_flag = '0'
         order by a.start_time desc
     </select>
+
+    <update id="updateActivityStatusBasedOnTime">
+        UPDATE club_activity
+        SET status = CASE
+            WHEN start_time > NOW() THEN '0'
+            WHEN start_time &lt;= NOW() AND (end_time >= NOW() OR end_time IS NULL) THEN '1'
+            ELSE '2'
+        END
+        WHERE del_flag = '0' AND status != '3'
+    </update>
 
 </mapper>

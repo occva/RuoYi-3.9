@@ -67,4 +67,42 @@
         limit #{limit}
     </select>
 
+    <insert id="insertClub" parameterType="com.ruoyi.user.domain.Club" useGeneratedKeys="true" keyProperty="clubId">
+        insert into club
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubName != null">club_name,</if>
+            <if test="clubCode != null">club_code,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="description != null">description,</if>
+            <if test="logoUrl != null">logo_url,</if>
+            <if test="coverUrl != null">cover_url,</if>
+            <if test="presidentId != null">president_id,</if>
+            <if test="presidentName != null">president_name,</if>
+            <if test="memberCount != null">member_count,</if>
+            <if test="location != null">location,</if>
+            <if test="contactEmail != null">contact_email,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="status != null">status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubName != null">#{clubName},</if>
+            <if test="clubCode != null">#{clubCode},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="description != null">#{description},</if>
+            <if test="logoUrl != null">#{logoUrl},</if>
+            <if test="coverUrl != null">#{coverUrl},</if>
+            <if test="presidentId != null">#{presidentId},</if>
+            <if test="presidentName != null">#{presidentName},</if>
+            <if test="memberCount != null">#{memberCount},</if>
+            <if test="location != null">#{location},</if>
+            <if test="contactEmail != null">#{contactEmail},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
 </mapper>

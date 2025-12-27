@@ -8,6 +8,10 @@ import com.ruoyi.user.domain.Club;
  */
 public interface IClubService {
     List<Club> selectClubList(Club club);
+
     Club selectClubById(Long clubId);
+
     List<Club> selectPopularClubs(int limit);
+
+    int insertClub(Club club);
 }

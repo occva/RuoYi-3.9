@@ -12,7 +12,7 @@ import com.ruoyi.user.service.IClubActivityService;
  */
 @Service
 public class ClubActivityServiceImpl implements IClubActivityService {
-    
+
     @Autowired
     private ClubActivityMapper clubActivityMapper;
 
@@ -29,5 +29,10 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     @Override
     public List<ClubActivity> selectActivityByClubId(Long clubId) {
         return clubActivityMapper.selectActivityByClubId(clubId);
+    }
+
+    @Override
+    public void updateActivityStatusBasedOnTime() {
+        clubActivityMapper.updateActivityStatusBasedOnTime();
     }
 }

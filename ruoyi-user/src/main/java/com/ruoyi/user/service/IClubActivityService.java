@@ -8,6 +8,10 @@ import com.ruoyi.user.domain.ClubActivity;
  */
 public interface IClubActivityService {
     List<ClubActivity> selectClubActivityList(ClubActivity activity);
+
     ClubActivity selectClubActivityById(Long activityId);
+
     List<ClubActivity> selectActivityByClubId(Long clubId);
+
+    void updateActivityStatusBasedOnTime();
 }

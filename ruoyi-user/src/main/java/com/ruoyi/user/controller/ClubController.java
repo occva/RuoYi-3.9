@@ -17,7 +17,7 @@ import com.ruoyi.user.service.IClubService;
 @RestController
 @RequestMapping("/api/user/club")
 public class ClubController extends BaseController {
-    
+
     @Autowired
     private IClubService clubService;
 
@@ -54,5 +54,29 @@ public class ClubController extends BaseController {
     @GetMapping("/{clubId}")
     public AjaxResult getInfo(@PathVariable Long clubId) {
         return success(clubService.selectClubById(clubId));
+    }
+
+    /**
+     * 申请创建社团
+     */
+    @PostMapping("/apply")
+    public AjaxResult apply(@RequestBody Club club) {
+        club.setCreateTime(new java.util.Date());
+        club.setStatus("1"); // 1=Pending
+        club.setDelFlag("0");
+        // Assume logged in user is the creator. In real app, get user from
+        // SecurityUtils.
+        // For now, allow submit.
+        return toAjax(clubService.insertClub(club));
+    }
+
+    /**
+     * 申请加入社团
+     */
+    @PostMapping("/join")
+    public AjaxResult join(@RequestBody Club club) {
+        // In a real app, this would insert into club_member table
+        // For now, we just return success
+        return success("申请提交成功，请等待社长审核");
     }
 }

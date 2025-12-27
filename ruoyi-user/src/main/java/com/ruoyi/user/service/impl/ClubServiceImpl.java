@@ -12,7 +12,7 @@ import com.ruoyi.user.service.IClubService;
  */
 @Service
 public class ClubServiceImpl implements IClubService {
-    
+
     @Autowired
     private ClubMapper clubMapper;
 
@@ -29,5 +29,10 @@ public class ClubServiceImpl implements IClubService {
     @Override
     public List<Club> selectPopularClubs(int limit) {
         return clubMapper.selectPopularClubs(limit);
+    }
+
+    @Override
+    public int insertClub(Club club) {
+        return clubMapper.insertClub(club);
     }
 }

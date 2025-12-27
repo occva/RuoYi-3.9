@@ -9,6 +9,8 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.user.domain.ClubActivity;
 import com.ruoyi.user.service.IClubActivityService;
 
+import com.ruoyi.common.core.page.TableDataInfo;
+
 /**
  * 社团活动Controller (用户端)
  */
@@ -16,7 +18,7 @@ import com.ruoyi.user.service.IClubActivityService;
 @RestController
 @RequestMapping("/api/user/activity")
 public class ClubActivityController extends BaseController {
-    
+
     @Autowired
     private IClubActivityService clubActivityService;
 
@@ -24,9 +26,10 @@ public class ClubActivityController extends BaseController {
      * 获取活动列表
      */
     @GetMapping("/list")
-    public AjaxResult list(ClubActivity activity) {
+    public TableDataInfo list(ClubActivity activity) {
+        startPage();
         List<ClubActivity> list = clubActivityService.selectClubActivityList(activity);
-        return success(list);
+        return getDataTable(list);
     }
 
     /**

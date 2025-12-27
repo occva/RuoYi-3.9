@@ -9,12 +9,16 @@
         <result property="sortOrder" column="sort_order"/>
         <result property="status" column="status"/>
         <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
     </resultMap>
 
     <sql id="selectClubCategoryVo">
-        select category_id, category_code, category_name, sort_order, status, del_flag, create_time, remark
+        select category_id, category_code, category_name, sort_order, status, del_flag, 
+               create_by, create_time, update_by, update_time, remark
         from club_category
     </sql>
 
@@ -22,6 +26,8 @@
         <include refid="selectClubCategoryVo"/>
         <where>
             del_flag = '0'
+            <if test="categoryCode != null and categoryCode != ''">AND category_code = #{categoryCode}</if>
+            <if test="categoryName != null and categoryName != ''">AND category_name like concat('%', #{categoryName}, '%')</if>
             <if test="status != null and status != ''">AND status = #{status}</if>
         </where>
         order by sort_order
@@ -31,5 +37,60 @@
         <include refid="selectClubCategoryVo"/>
         where category_id = #{categoryId} and del_flag = '0'
     </select>
+
+    <select id="checkCategoryCodeUnique" parameterType="String" resultMap="ClubCategoryResult">
+        select category_id, category_code from club_category where category_code = #{categoryCode} and del_flag = '0' limit 1
+    </select>
+
+    <select id="checkCategoryNameUnique" parameterType="String" resultMap="ClubCategoryResult">
+        select category_id, category_name from club_category where category_name = #{categoryName} and del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertClubCategory" parameterType="com.ruoyi.user.domain.ClubCategory" useGeneratedKeys="true" keyProperty="categoryId">
+        insert into club_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryCode != null and categoryCode != ''">category_code,</if>
+            <if test="categoryName != null and categoryName != ''">category_name,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time,
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryCode != null and categoryCode != ''">#{categoryCode},</if>
+            <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate(),
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateClubCategory" parameterType="com.ruoyi.user.domain.ClubCategory">
+        update club_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryCode != null">category_code = #{categoryCode},</if>
+            <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where category_id = #{categoryId}
+    </update>
+
+    <update id="deleteClubCategoryById" parameterType="Long">
+        update club_category set del_flag = '2' where category_id = #{categoryId}
+    </update>
+
+    <update id="deleteClubCategoryByIds" parameterType="Long">
+        update club_category set del_flag = '2' where category_id in
+        <foreach collection="array" item="categoryId" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </update>
 
 </mapper>

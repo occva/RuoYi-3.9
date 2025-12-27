@@ -28,7 +28,10 @@
         <result property="sortOrder" column="sort_order"/>
         <result property="status" column="status"/>
         <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
         <result property="categoryName" column="category_name"/>
     </resultMap>
@@ -38,7 +41,7 @@
                c.president_id, c.president_name, c.vice_president, c.member_count, c.max_members, c.founded_date,
                c.location, c.contact_phone, c.contact_email, c.contact_qq, c.contact_wechat,
                c.is_recruiting, c.is_popular, c.view_count, c.favorite_count, c.sort_order, c.status, c.del_flag,
-               c.create_time, c.remark, cc.category_name
+               c.create_by, c.create_time, c.update_by, c.update_time, c.remark, cc.category_name
         from club c
         left join club_category cc on c.category_id = cc.category_id
     </sql>
@@ -46,11 +49,16 @@
     <select id="selectClubList" parameterType="com.ruoyi.user.domain.Club" resultMap="ClubResult">
         <include refid="selectClubVo"/>
         <where>
-            c.del_flag = '0' and c.status = '0'
+            c.del_flag = '0'
             <if test="clubName != null and clubName != ''">AND c.club_name like concat('%', #{clubName}, '%')</if>
+            <if test="clubCode != null and clubCode != ''">AND c.club_code = #{clubCode}</if>
             <if test="categoryId != null">AND c.category_id = #{categoryId}</if>
+            <if test="status != null and status != ''">AND c.status = #{status}</if>
             <if test="isRecruiting != null and isRecruiting != ''">AND c.is_recruiting = #{isRecruiting}</if>
             <if test="isPopular != null and isPopular != ''">AND c.is_popular = #{isPopular}</if>
+            <if test="presidentName != null and presidentName != ''">AND c.president_name like concat('%', #{presidentName}, '%')</if>
+            <if test="params.beginTime != null and params.beginTime != ''">AND c.create_time &gt;= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">AND c.create_time &lt;= #{params.endTime}</if>
         </where>
         order by c.sort_order, c.create_time desc
     </select>
@@ -67,42 +75,128 @@
         limit #{limit}
     </select>
 
+    <select id="checkClubCodeUnique" parameterType="String" resultMap="ClubResult">
+        select club_id, club_code from club where club_code = #{clubCode} and del_flag = '0' limit 1
+    </select>
+
+    <select id="checkClubNameUnique" parameterType="String" resultMap="ClubResult">
+        select club_id, club_name from club where club_name = #{clubName} and del_flag = '0' limit 1
+    </select>
+
+    <select id="countClubByCategoryId" parameterType="Long" resultType="int">
+        select count(*) from club where category_id = #{categoryId} and del_flag = '0'
+    </select>
+
     <insert id="insertClub" parameterType="com.ruoyi.user.domain.Club" useGeneratedKeys="true" keyProperty="clubId">
         insert into club
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="clubName != null">club_name,</if>
-            <if test="clubCode != null">club_code,</if>
+            <if test="clubName != null and clubName != ''">club_name,</if>
+            <if test="clubCode != null and clubCode != ''">club_code,</if>
             <if test="categoryId != null">category_id,</if>
             <if test="description != null">description,</if>
             <if test="logoUrl != null">logo_url,</if>
             <if test="coverUrl != null">cover_url,</if>
             <if test="presidentId != null">president_id,</if>
             <if test="presidentName != null">president_name,</if>
+            <if test="vicePresident != null">vice_president,</if>
             <if test="memberCount != null">member_count,</if>
+            <if test="maxMembers != null">max_members,</if>
+            <if test="foundedDate != null">founded_date,</if>
             <if test="location != null">location,</if>
-            <if test="contactEmail != null">contact_email,</if>
             <if test="contactPhone != null">contact_phone,</if>
+            <if test="contactEmail != null">contact_email,</if>
+            <if test="contactQq != null">contact_qq,</if>
+            <if test="contactWechat != null">contact_wechat,</if>
+            <if test="isRecruiting != null">is_recruiting,</if>
+            <if test="isPopular != null">is_popular,</if>
+            <if test="sortOrder != null">sort_order,</if>
             <if test="status != null">status,</if>
-            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time,
             <if test="remark != null">remark,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="clubName != null">#{clubName},</if>
-            <if test="clubCode != null">#{clubCode},</if>
+            <if test="clubName != null and clubName != ''">#{clubName},</if>
+            <if test="clubCode != null and clubCode != ''">#{clubCode},</if>
             <if test="categoryId != null">#{categoryId},</if>
             <if test="description != null">#{description},</if>
             <if test="logoUrl != null">#{logoUrl},</if>
             <if test="coverUrl != null">#{coverUrl},</if>
             <if test="presidentId != null">#{presidentId},</if>
             <if test="presidentName != null">#{presidentName},</if>
+            <if test="vicePresident != null">#{vicePresident},</if>
             <if test="memberCount != null">#{memberCount},</if>
+            <if test="maxMembers != null">#{maxMembers},</if>
+            <if test="foundedDate != null">#{foundedDate},</if>
             <if test="location != null">#{location},</if>
-            <if test="contactEmail != null">#{contactEmail},</if>
             <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="contactEmail != null">#{contactEmail},</if>
+            <if test="contactQq != null">#{contactQq},</if>
+            <if test="contactWechat != null">#{contactWechat},</if>
+            <if test="isRecruiting != null">#{isRecruiting},</if>
+            <if test="isPopular != null">#{isPopular},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
             <if test="status != null">#{status},</if>
-            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate(),
             <if test="remark != null">#{remark},</if>
         </trim>
     </insert>
+
+    <update id="updateClub" parameterType="com.ruoyi.user.domain.Club">
+        update club
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubName != null and clubName != ''">club_name = #{clubName},</if>
+            <if test="clubCode != null">club_code = #{clubCode},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="logoUrl != null">logo_url = #{logoUrl},</if>
+            <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+            <if test="presidentId != null">president_id = #{presidentId},</if>
+            <if test="presidentName != null">president_name = #{presidentName},</if>
+            <if test="vicePresident != null">vice_president = #{vicePresident},</if>
+            <if test="memberCount != null">member_count = #{memberCount},</if>
+            <if test="maxMembers != null">max_members = #{maxMembers},</if>
+            <if test="foundedDate != null">founded_date = #{foundedDate},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+            <if test="contactQq != null">contact_qq = #{contactQq},</if>
+            <if test="contactWechat != null">contact_wechat = #{contactWechat},</if>
+            <if test="isRecruiting != null">is_recruiting = #{isRecruiting},</if>
+            <if test="isPopular != null">is_popular = #{isPopular},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate(),
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where club_id = #{clubId}
+    </update>
+
+    <update id="deleteClubById" parameterType="Long">
+        update club set del_flag = '2' where club_id = #{clubId}
+    </update>
+
+    <update id="deleteClubByIds" parameterType="Long">
+        update club set del_flag = '2' where club_id in
+        <foreach collection="array" item="clubId" open="(" separator="," close=")">
+            #{clubId}
+        </foreach>
+    </update>
+
+    <update id="updateClubStatus">
+        update club set status = #{status}, update_by = #{updateBy}, update_time = sysdate() where club_id in
+        <foreach collection="clubIds" item="clubId" open="(" separator="," close=")">
+            #{clubId}
+        </foreach>
+    </update>
+
+    <update id="updateClubPopular">
+        update club set is_popular = #{isPopular}, update_by = #{updateBy}, update_time = sysdate() where club_id in
+        <foreach collection="clubIds" item="clubId" open="(" separator="," close=")">
+            #{clubId}
+        </foreach>
+    </update>
 
 </mapper>

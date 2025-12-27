@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubMapper">
+
+    <resultMap type="com.ruoyi.user.domain.Club" id="ClubResult">
+        <id property="clubId" column="club_id"/>
+        <result property="clubName" column="club_name"/>
+        <result property="clubCode" column="club_code"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="description" column="description"/>
+        <result property="logoUrl" column="logo_url"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="presidentId" column="president_id"/>
+        <result property="presidentName" column="president_name"/>
+        <result property="vicePresident" column="vice_president"/>
+        <result property="memberCount" column="member_count"/>
+        <result property="maxMembers" column="max_members"/>
+        <result property="foundedDate" column="founded_date"/>
+        <result property="location" column="location"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="contactEmail" column="contact_email"/>
+        <result property="contactQq" column="contact_qq"/>
+        <result property="contactWechat" column="contact_wechat"/>
+        <result property="isRecruiting" column="is_recruiting"/>
+        <result property="isPopular" column="is_popular"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="favoriteCount" column="favorite_count"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+        <result property="categoryName" column="category_name"/>
+    </resultMap>
+
+    <sql id="selectClubVo">
+        select c.club_id, c.club_name, c.club_code, c.category_id, c.description, c.logo_url, c.cover_url,
+               c.president_id, c.president_name, c.vice_president, c.member_count, c.max_members, c.founded_date,
+               c.location, c.contact_phone, c.contact_email, c.contact_qq, c.contact_wechat,
+               c.is_recruiting, c.is_popular, c.view_count, c.favorite_count, c.sort_order, c.status, c.del_flag,
+               c.create_time, c.remark, cc.category_name
+        from club c
+        left join club_category cc on c.category_id = cc.category_id
+    </sql>
+
+    <select id="selectClubList" parameterType="com.ruoyi.user.domain.Club" resultMap="ClubResult">
+        <include refid="selectClubVo"/>
+        <where>
+            c.del_flag = '0' and c.status = '0'
+            <if test="clubName != null and clubName != ''">AND c.club_name like concat('%', #{clubName}, '%')</if>
+            <if test="categoryId != null">AND c.category_id = #{categoryId}</if>
+            <if test="isRecruiting != null and isRecruiting != ''">AND c.is_recruiting = #{isRecruiting}</if>
+            <if test="isPopular != null and isPopular != ''">AND c.is_popular = #{isPopular}</if>
+        </where>
+        order by c.sort_order, c.create_time desc
+    </select>
+
+    <select id="selectClubById" parameterType="Long" resultMap="ClubResult">
+        <include refid="selectClubVo"/>
+        where c.club_id = #{clubId} and c.del_flag = '0'
+    </select>
+
+    <select id="selectPopularClubs" parameterType="int" resultMap="ClubResult">
+        <include refid="selectClubVo"/>
+        where c.del_flag = '0' and c.status = '0'
+        order by c.is_popular desc, c.member_count desc
+        limit #{limit}
+    </select>
+
+</mapper>

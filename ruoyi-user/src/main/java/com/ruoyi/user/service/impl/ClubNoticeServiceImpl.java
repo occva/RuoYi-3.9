@@ -1,0 +1,33 @@
+package com.ruoyi.user.service.impl;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.ruoyi.user.domain.ClubNotice;
+import com.ruoyi.user.mapper.ClubNoticeMapper;
+import com.ruoyi.user.service.IClubNoticeService;
+
+/**
+ * 社团公告Service实现
+ */
+@Service
+public class ClubNoticeServiceImpl implements IClubNoticeService {
+    
+    @Autowired
+    private ClubNoticeMapper clubNoticeMapper;
+
+    @Override
+    public List<ClubNotice> selectClubNoticeList(ClubNotice notice) {
+        return clubNoticeMapper.selectClubNoticeList(notice);
+    }
+
+    @Override
+    public ClubNotice selectClubNoticeById(Long noticeId) {
+        return clubNoticeMapper.selectClubNoticeById(noticeId);
+    }
+
+    @Override
+    public List<ClubNotice> selectNoticeByClubId(Long clubId) {
+        return clubNoticeMapper.selectNoticeByClubId(clubId);
+    }
+}

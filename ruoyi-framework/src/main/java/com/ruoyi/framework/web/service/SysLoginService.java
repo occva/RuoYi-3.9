@@ -88,42 +88,11 @@ public class SysLoginService {
 
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
 
-        // 检查用户是否有后台管理权限（只有common角色的普通用户不允许登录后台）
-        if (isOnlyCommonUser(loginUser)) {
-            AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_FAIL, "普通用户无权登录后台管理系统"));
-            throw new ServiceException("普通用户无权登录后台管理系统，请前往用户端访问");
-        }
-
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS,
                 MessageUtils.message("user.login.success")));
         recordLoginInfo(loginUser.getUserId());
         // 生成token
         return tokenService.createToken(loginUser);
-    }
-
-    /**
-     * 检查用户是否只有普通用户角色（common）
-     * 只有common角色的用户被视为普通用户，不允许登录后台
-     * 
-     * @param loginUser 登录用户
-     * @return 是否只有普通用户角色
-     */
-    private boolean isOnlyCommonUser(LoginUser loginUser) {
-        // 管理员直接放行
-        if (loginUser.getUser().isAdmin()) {
-            return false;
-        }
-        // 检查用户权限，如果为空或只有基础权限，视为普通用户
-        if (loginUser.getPermissions() == null || loginUser.getPermissions().isEmpty()) {
-            return true;
-        }
-        // 如果用户有任何后台菜单权限（如system:开头的权限），则允许登录
-        for (String perm : loginUser.getPermissions()) {
-            if (perm.startsWith("system:") || perm.equals("*:*:*")) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

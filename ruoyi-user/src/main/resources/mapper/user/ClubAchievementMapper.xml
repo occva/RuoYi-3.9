@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubAchievementMapper">
+    
+    <resultMap type="ClubAchievement" id="ClubAchievementResult">
+        <result property="achievementId"    column="achievement_id"    />
+        <result property="clubId"    column="club_id"    />
+        <result property="clubName"    column="club_name"    />
+        <result property="achievementTitle"    column="achievement_title"    />
+        <result property="achievementType"    column="achievement_type"    />
+        <result property="description"    column="description"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="achieveDate"    column="achieve_date"    />
+        <result property="level"    column="level"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectClubAchievementVo">
+        select a.achievement_id, a.club_id, c.club_name, a.achievement_title, a.achievement_type, a.description, a.image_url, a.achieve_date, a.level, a.sort_order, a.status, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time, a.remark
+        from club_achievement a
+        left join club c on a.club_id = c.club_id
+    </sql>
+
+    <select id="selectClubAchievementList" parameterType="ClubAchievement" resultMap="ClubAchievementResult">
+        <include refid="selectClubAchievementVo"/>
+        <where>  
+            a.del_flag = '0'
+            <if test="clubId != null "> and a.club_id = #{clubId}</if>
+            <if test="achievementTitle != null  and achievementTitle != ''"> and a.achievement_title like concat('%', #{achievementTitle}, '%')</if>
+            <if test="achievementType != null  and achievementType != ''"> and a.achievement_type = #{achievementType}</if>
+            <if test="level != null  and level != ''"> and a.level = #{level}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+        </where>
+        order by a.sort_order asc, a.achieve_date desc
+    </select>
+    
+    <select id="selectClubAchievementById" parameterType="Long" resultMap="ClubAchievementResult">
+        <include refid="selectClubAchievementVo"/>
+        where a.achievement_id = #{achievementId}
+    </select>
+        
+    <insert id="insertClubAchievement" parameterType="ClubAchievement" useGeneratedKeys="true" keyProperty="achievementId">
+        insert into club_achievement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">club_id,</if>
+            <if test="achievementTitle != null and achievementTitle != ''">achievement_title,</if>
+            <if test="achievementType != null">achievement_type,</if>
+            <if test="description != null">description,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="achieveDate != null">achieve_date,</if>
+            <if test="level != null">level,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">#{clubId},</if>
+            <if test="achievementTitle != null and achievementTitle != ''">#{achievementTitle},</if>
+            <if test="achievementType != null">#{achievementType},</if>
+            <if test="description != null">#{description},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="achieveDate != null">#{achieveDate},</if>
+            <if test="level != null">#{level},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateClubAchievement" parameterType="ClubAchievement">
+        update club_achievement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubId != null">club_id = #{clubId},</if>
+            <if test="achievementTitle != null and achievementTitle != ''">achievement_title = #{achievementTitle},</if>
+            <if test="achievementType != null">achievement_type = #{achievementType},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="achieveDate != null">achieve_date = #{achieveDate},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where achievement_id = #{achievementId}
+    </update>
+
+    <delete id="deleteClubAchievementById" parameterType="Long">
+        update club_achievement set del_flag = '2' where achievement_id = #{achievementId}
+    </delete>
+
+    <delete id="deleteClubAchievementByIds" parameterType="String">
+        update club_achievement set del_flag = '2' where achievement_id in 
+        <foreach item="achievementId" collection="array" open="(" separator="," close=")">
+            #{achievementId}
+        </foreach>
+    </delete>
+</mapper>

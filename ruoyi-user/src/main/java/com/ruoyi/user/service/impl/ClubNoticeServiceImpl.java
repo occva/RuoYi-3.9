@@ -12,7 +12,7 @@ import com.ruoyi.user.service.IClubNoticeService;
  */
 @Service
 public class ClubNoticeServiceImpl implements IClubNoticeService {
-    
+
     @Autowired
     private ClubNoticeMapper clubNoticeMapper;
 
@@ -29,5 +29,25 @@ public class ClubNoticeServiceImpl implements IClubNoticeService {
     @Override
     public List<ClubNotice> selectNoticeByClubId(Long clubId) {
         return clubNoticeMapper.selectNoticeByClubId(clubId);
+    }
+
+    @Override
+    public int insertClubNotice(ClubNotice notice) {
+        return clubNoticeMapper.insertClubNotice(notice);
+    }
+
+    @Override
+    public int updateClubNotice(ClubNotice notice) {
+        return clubNoticeMapper.updateClubNotice(notice);
+    }
+
+    @Override
+    public int deleteClubNoticeById(Long noticeId) {
+        return clubNoticeMapper.deleteClubNoticeById(noticeId);
+    }
+
+    @Override
+    public int deleteClubNoticeByIds(Long[] noticeIds) {
+        return clubNoticeMapper.deleteClubNoticeByIds(noticeIds);
     }
 }

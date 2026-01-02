@@ -1,4 +1,4 @@
-package com.ruoyi.user.controller;
+package com.ruoyi.web.controller.app;
 
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +27,13 @@ import com.ruoyi.framework.web.service.TokenService;
 import com.ruoyi.system.service.ISysUserService;
 
 /**
- * 用户端个人中心 接口
+ * 个人信息 业务处理 (用户端)
  * 
  * @author ruoyi
  */
 @RestController
 @RequestMapping("/api/user/profile")
-public class ClubProfileController extends BaseController {
+public class AppProfileController extends BaseController {
     @Autowired
     private ISysUserService userService;
 
@@ -41,20 +41,22 @@ public class ClubProfileController extends BaseController {
     private TokenService tokenService;
 
     /**
-     * 获取个人信息
+     * 个人信息
      */
     @GetMapping
     public AjaxResult profile() {
         LoginUser loginUser = getLoginUser();
         SysUser user = loginUser.getUser();
         AjaxResult ajax = AjaxResult.success(user);
+        ajax.put("roleGroup", userService.selectUserRoleGroup(loginUser.getUsername()));
+        ajax.put("postGroup", userService.selectUserPostGroup(loginUser.getUsername()));
         return ajax;
     }
 
     /**
-     * 修改个人基本信息
+     * 修改用户
      */
-    @Log(title = "个人中心", businessType = BusinessType.UPDATE)
+    @Log(title = "个人信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult updateProfile(@RequestBody SysUser user) {
         LoginUser loginUser = getLoginUser();
@@ -63,26 +65,24 @@ public class ClubProfileController extends BaseController {
         currentUser.setEmail(user.getEmail());
         currentUser.setPhonenumber(user.getPhonenumber());
         currentUser.setSex(user.getSex());
-
         if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(currentUser)) {
-            return error("修改账户失败，手机号码已存在");
+            return error("修改用户'" + loginUser.getUsername() + "'失败，手机号码已存在");
         }
         if (StringUtils.isNotEmpty(user.getEmail()) && !userService.checkEmailUnique(currentUser)) {
-            return error("修改账户失败，邮箱账号已存在");
+            return error("修改用户'" + loginUser.getUsername() + "'失败，邮箱账号已存在");
         }
-
         if (userService.updateUserProfile(currentUser) > 0) {
             // 更新缓存用户信息
             tokenService.setLoginUser(loginUser);
             return success();
         }
-        return error("修改个人信息异常");
+        return error("修改个人信息异常，请联系管理员");
     }
 
     /**
-     * 修改密码
+     * 重置密码
      */
-    @Log(title = "个人中心", businessType = BusinessType.UPDATE)
+    @Log(title = "个人信息", businessType = BusinessType.UPDATE)
     @PutMapping("/updatePwd")
     public AjaxResult updatePwd(@RequestBody Map<String, String> params) {
         String oldPassword = params.get("oldPassword");
@@ -91,29 +91,27 @@ public class ClubProfileController extends BaseController {
         Long userId = loginUser.getUserId();
         SysUser user = userService.selectUserById(userId);
         String password = user.getPassword();
-
         if (!SecurityUtils.matchesPassword(oldPassword, password)) {
             return error("修改密码失败，旧密码错误");
         }
         if (SecurityUtils.matchesPassword(newPassword, password)) {
             return error("新密码不能与旧密码相同");
         }
-
-        String encryptedPassword = SecurityUtils.encryptPassword(newPassword);
-        if (userService.resetUserPwd(userId, encryptedPassword) > 0) {
+        newPassword = SecurityUtils.encryptPassword(newPassword);
+        if (userService.resetUserPwd(userId, newPassword) > 0) {
             // 更新缓存用户密码&密码最后更新时间
             loginUser.getUser().setPwdUpdateDate(DateUtils.getNowDate());
-            loginUser.getUser().setPassword(encryptedPassword);
+            loginUser.getUser().setPassword(newPassword);
             tokenService.setLoginUser(loginUser);
             return success();
         }
-        return error("修改密码异常");
+        return error("修改密码异常，请联系管理员");
     }
 
     /**
      * 头像上传
      */
-    @Log(title = "用户中心", businessType = BusinessType.UPDATE)
+    @Log(title = "用户头像", businessType = BusinessType.UPDATE)
     @PostMapping("/avatar")
     public AjaxResult avatar(@RequestParam("avatarfile") MultipartFile file) throws Exception {
         if (!file.isEmpty()) {
@@ -133,6 +131,6 @@ public class ClubProfileController extends BaseController {
                 return ajax;
             }
         }
-        return error("上传图片异常");
+        return error("上传图片异常，请联系管理员");
     }
 }

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubApplicationMapper">
+    
+    <resultMap type="com.ruoyi.user.domain.ClubApplication" id="ClubApplicationResult">
+        <result property="applicationId"    column="application_id"    />
+        <result property="clubId"    column="club_id"    />
+        <result property="clubName"    column="club_name"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="realName"    column="real_name"    />
+        <result property="gender"    column="gender"    />
+        <result property="major"    column="major"    />
+        <result property="grade"    column="grade"    />
+        <result property="className"    column="class_name"    />
+        <result property="phone"    column="phone"    />
+        <result property="email"    column="email"    />
+        <result property="selfIntroduction"    column="self_introduction"    />
+        <result property="applyReason"    column="apply_reason"    />
+        <result property="specialSkills"    column="special_skills"    />
+        <result property="applicationTime"    column="application_time"    />
+        <result property="status"    column="审核_status"    />
+        <result property="reviewerId"    column="reviewer_id"    />
+        <result property="reviewerName"    column="reviewer_name"    />
+        <result property="reviewTime"    column="review_time"    />
+        <result property="reviewComment"    column="review_comment"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectClubApplicationVo">
+        select application_id, club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, 审核_status, reviewer_id, reviewer_name, review_time, review_comment, del_flag, create_by, create_time, update_by, update_time, remark from club_application
+    </sql>
+
+    <select id="selectClubApplicationList" parameterType="com.ruoyi.user.domain.ClubApplication" resultMap="ClubApplicationResult">
+        <include refid="selectClubApplicationVo"/>
+        <where>  
+            del_flag = '0'
+            <if test="clubId != null "> and club_id = #{clubId}</if>
+            <if test="clubName != null  and clubName != ''"> and club_name like concat('%', #{clubName}, '%')</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
+            <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
+            <if test="status != null  and status != ''"> and 审核_status = #{status}</if>
+        </where>
+        order by application_time desc
+    </select>
+    
+    <select id="selectClubApplicationById" parameterType="Long" resultMap="ClubApplicationResult">
+        <include refid="selectClubApplicationVo"/>
+        where application_id = #{applicationId}
+    </select>
+        
+    <insert id="insertClubApplication" parameterType="com.ruoyi.user.domain.ClubApplication" useGeneratedKeys="true" keyProperty="applicationId">
+        insert into club_application
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">club_id,</if>
+            <if test="clubName != null">club_name,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="nickName != null">nick_name,</if>
+            <if test="studentId != null and studentId != ''">student_id,</if>
+            <if test="realName != null and realName != ''">real_name,</if>
+            <if test="gender != null">gender,</if>
+            <if test="major != null">major,</if>
+            <if test="grade != null">grade,</if>
+            <if test="className != null">class_name,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="selfIntroduction != null">self_introduction,</if>
+            <if test="applyReason != null">apply_reason,</if>
+            <if test="specialSkills != null">special_skills,</if>
+            <if test="applicationTime != null">application_time,</if>
+            <if test="status != null">审核_status,</if>
+            <if test="reviewerId != null">reviewer_id,</if>
+            <if test="reviewerName != null">reviewer_name,</if>
+            <if test="reviewTime != null">review_time,</if>
+            <if test="reviewComment != null">review_comment,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">#{clubId},</if>
+            <if test="clubName != null">#{clubName},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="nickName != null">#{nickName},</if>
+            <if test="studentId != null and studentId != ''">#{studentId},</if>
+            <if test="realName != null and realName != ''">#{realName},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="major != null">#{major},</if>
+            <if test="grade != null">#{grade},</if>
+            <if test="className != null">#{className},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="selfIntroduction != null">#{selfIntroduction},</if>
+            <if test="applyReason != null">#{applyReason},</if>
+            <if test="specialSkills != null">#{specialSkills},</if>
+            <if test="applicationTime != null">#{applicationTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="reviewerId != null">#{reviewerId},</if>
+            <if test="reviewerName != null">#{reviewerName},</if>
+            <if test="reviewTime != null">#{reviewTime},</if>
+            <if test="reviewComment != null">#{reviewComment},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateClubApplication" parameterType="com.ruoyi.user.domain.ClubApplication">
+        update club_application
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubId != null">club_id = #{clubId},</if>
+            <if test="clubName != null">club_name = #{clubName},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="nickName != null">nick_name = #{nickName},</if>
+            <if test="studentId != null and studentId != ''">student_id = #{studentId},</if>
+            <if test="realName != null and realName != ''">real_name = #{realName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="major != null">major = #{major},</if>
+            <if test="grade != null">grade = #{grade},</if>
+            <if test="className != null">class_name = #{className},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="selfIntroduction != null">self_introduction = #{selfIntroduction},</if>
+            <if test="applyReason != null">apply_reason = #{applyReason},</if>
+            <if test="specialSkills != null">special_skills = #{specialSkills},</if>
+            <if test="applicationTime != null">application_time = #{applicationTime},</if>
+            <if test="status != null">审核_status = #{status},</if>
+            <if test="reviewerId != null">reviewer_id = #{reviewerId},</if>
+            <if test="reviewerName != null">reviewer_name = #{reviewerName},</if>
+            <if test="reviewTime != null">review_time = #{reviewTime},</if>
+            <if test="reviewComment != null">review_comment = #{reviewComment},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where application_id = #{applicationId}
+    </update>
+
+    <delete id="deleteClubApplicationById" parameterType="Long">
+        update club_application set del_flag = '2' where application_id = #{applicationId}
+    </delete>
+
+    <delete id="deleteClubApplicationByIds" parameterType="Long">
+        update club_application set del_flag = '2' where application_id in 
+        <foreach item="applicationId" collection="array" open="(" separator="," close=")">
+            #{applicationId}
+        </foreach>
+    </delete>
+</mapper>

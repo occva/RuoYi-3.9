@@ -32,6 +32,26 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     }
 
     @Override
+    public int insertClubActivity(ClubActivity activity) {
+        return clubActivityMapper.insertClubActivity(activity);
+    }
+
+    @Override
+    public int updateClubActivity(ClubActivity activity) {
+        return clubActivityMapper.updateClubActivity(activity);
+    }
+
+    @Override
+    public int deleteClubActivityById(Long activityId) {
+        return clubActivityMapper.deleteClubActivityById(activityId);
+    }
+
+    @Override
+    public int deleteClubActivityByIds(Long[] activityIds) {
+        return clubActivityMapper.deleteClubActivityByIds(activityIds);
+    }
+
+    @Override
     public void updateActivityStatusBasedOnTime() {
         clubActivityMapper.updateActivityStatusBasedOnTime();
     }

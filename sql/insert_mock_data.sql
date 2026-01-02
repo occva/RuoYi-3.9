@@ -30,4 +30,10 @@ INSERT INTO `club_activity` (`activity_id`, `club_id`, `activity_title`, `start_
 INSERT INTO `club_notice` (`notice_id`, `club_id`, `notice_title`, `notice_content`, `publish_time`, `status`, `create_time`, `create_by`) VALUES
 (1872800000000000001, 1872600000000000001, '会费缴纳通知', '请在月底前缴纳会员费。', '2024-10-01 09:00:00', '1', NOW(), 'admin'),
 (1872800000000000002, 1872600000000000001, '迎新会确认', '本周五的迎新会已确认！', '2024-09-15 10:00:00', '1', NOW(), 'admin');
+
+-- Insert Achievement Data
+INSERT INTO `club_achievement` (`achievement_id`, `club_id`, `achievement_title`, `achievement_type`, `description`, `image_url`, `achieve_date`, `level`, `sort_order`, `status`, `create_time`, `create_by`) VALUES
+(1001, 1872600000000000001, '全国大学生编程大赛金奖', 'competition', '在2024年全国大学生编程大赛中荣获团队金奖', 'https://images.unsplash.com/photo-1578357078586-491adc1c4aa0?q=80&w=400', '2024-05-20', '国家级', 1, '0', NOW(), 'admin'),
+(1002, 1872600000000000001, '校内优秀社团', 'award', '2023年度校级优秀学生社团荣誉称号', '', '2023-12-15', '校级', 2, '0', NOW(), 'admin'),
+(1003, 1872600000000000003, '省级摄影展一等奖', 'competition', '社团成员在全省高校联合摄影展中获得第一名', 'https://images.unsplash.com/photo-1620662831351-9f693521fd1f?q=80&w=400', '2024-03-10', '省级', 1, '0', NOW(), 'admin');
   

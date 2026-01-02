@@ -112,6 +112,7 @@ public class SecurityConfig {
                     requests.requestMatchers("/login", "/register", "/captchaImage").permitAll()
                             // 用户端API，允许匿名访问
                             .requestMatchers("/api/user/**").permitAll()
+                            .requestMatchers("/api/app/**").permitAll()
                             // 静态资源，可匿名访问
                             .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.css", "/*.js", "/favicon.ico")
                             .permitAll()

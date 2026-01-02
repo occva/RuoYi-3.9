@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubMemberMapper">
+    
+    <resultMap type="com.ruoyi.user.domain.ClubMember" id="ClubMemberResult">
+        <result property="memberId"    column="member_id"    />
+        <result property="clubId"    column="club_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="studentId"    column="student_id"    />
+        <result property="roleType"    column="role_type"    />
+        <result property="positionName" column="position_name" />
+        <result property="joinDate"    column="join_date"    />
+        <result property="contribution" column="contribution" />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="clubName"    column="club_name"    />
+        <result property="avatar"      column="avatar"       />
+    </resultMap>
+
+    <sql id="selectClubMemberVo">
+        select m.member_id, m.club_id, m.user_id, m.user_name, m.nick_name, m.student_id, m.role_type, m.position_name, m.join_date, m.contribution, m.status, m.del_flag, m.create_by, m.create_time, m.update_by, m.update_time, m.remark,
+               c.club_name, u.avatar
+        from club_member m
+        left join club c on m.club_id = c.club_id
+        left join sys_user u on m.user_id = u.user_id
+    </sql>
+
+    <select id="selectClubMemberList" parameterType="com.ruoyi.user.domain.ClubMember" resultMap="ClubMemberResult">
+        <include refid="selectClubMemberVo"/>
+        <where>  
+            m.del_flag = '0'
+            <if test="clubId != null "> and m.club_id = #{clubId}</if>
+            <if test="userId != null "> and m.user_id = #{userId}</if>
+            <if test="userName != null  and userName != ''"> and m.user_name like concat('%', #{userName}, '%')</if>
+            <if test="nickName != null  and nickName != ''"> and m.nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="roleType != null  and roleType != ''"> and m.role_type = #{roleType}</if>
+            <if test="status != null  and status != ''"> and m.status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectClubMemberById" parameterType="Long" resultMap="ClubMemberResult">
+        <include refid="selectClubMemberVo"/>
+        where m.member_id = #{memberId}
+    </select>
+        
+    <insert id="insertClubMember" parameterType="com.ruoyi.user.domain.ClubMember" useGeneratedKeys="true" keyProperty="memberId">
+        insert into club_member
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">club_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="nickName != null">nick_name,</if>
+            <if test="studentId != null">student_id,</if>
+            <if test="roleType != null">role_type,</if>
+            <if test="positionName != null">position_name,</if>
+            <if test="joinDate != null">join_date,</if>
+            <if test="contribution != null">contribution,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">#{clubId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="nickName != null">#{nickName},</if>
+            <if test="studentId != null">#{studentId},</if>
+            <if test="roleType != null">#{roleType},</if>
+            <if test="positionName != null">#{positionName},</if>
+            <if test="joinDate != null">#{joinDate},</if>
+            <if test="contribution != null">#{contribution},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateClubMember" parameterType="com.ruoyi.user.domain.ClubMember">
+        update club_member
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubId != null">club_id = #{clubId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="userName != null and userName != ''">user_name = #{userName},</if>
+            <if test="nickName != null">nick_name = #{nickName},</if>
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="roleType != null">role_type = #{roleType},</if>
+            <if test="positionName != null">position_name = #{positionName},</if>
+            <if test="joinDate != null">join_date = #{joinDate},</if>
+            <if test="contribution != null">contribution = #{contribution},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where member_id = #{memberId}
+    </update>
+
+    <delete id="deleteClubMemberById" parameterType="Long">
+        update club_member set del_flag = '2' where member_id = #{memberId}
+    </delete>
+
+    <delete id="deleteClubMemberByIds" parameterType="Long">
+        update club_member set del_flag = '2' where member_id in 
+        <foreach item="memberId" collection="array" open="(" separator="," close=")">
+            #{memberId}
+        </foreach>
+    </delete>
+</mapper>

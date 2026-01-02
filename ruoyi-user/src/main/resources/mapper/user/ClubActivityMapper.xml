@@ -59,6 +59,93 @@
         order by a.start_time desc
     </select>
 
+    <insert id="insertClubActivity" parameterType="com.ruoyi.user.domain.ClubActivity" useGeneratedKeys="true" keyProperty="activityId">
+        insert into club_activity
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">club_id,</if>
+            <if test="activityTitle != null and activityTitle != ''">activity_title,</if>
+            <if test="activityType != null and activityType != ''">activity_type,</if>
+            <if test="description != null">description,</if>
+            <if test="coverUrl != null">cover_url,</if>
+            <if test="location != null">location,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="registrationStart != null">registration_start,</if>
+            <if test="registrationEnd != null">registration_end,</if>
+            <if test="maxParticipants != null">max_participants,</if>
+            <if test="currentParticipants != null">current_participants,</if>
+            <if test="status != null">status,</if>
+            <if test="organizer != null">organizer,</if>
+            <if test="contactInfo != null">contact_info,</if>
+            <if test="isPublic != null">is_public,</if>
+            <if test="viewCount != null">view_count,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubId != null">#{clubId},</if>
+            <if test="activityTitle != null and activityTitle != ''">#{activityTitle},</if>
+            <if test="activityType != null and activityType != ''">#{activityType},</if>
+            <if test="description != null">#{description},</if>
+            <if test="coverUrl != null">#{coverUrl},</if>
+            <if test="location != null">#{location},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="registrationStart != null">#{registrationStart},</if>
+            <if test="registrationEnd != null">#{registrationEnd},</if>
+            <if test="maxParticipants != null">#{maxParticipants},</if>
+            <if test="currentParticipants != null">#{currentParticipants},</if>
+            <if test="status != null">#{status},</if>
+            <if test="organizer != null">#{organizer},</if>
+            <if test="contactInfo != null">#{contactInfo},</if>
+            <if test="isPublic != null">#{isPublic},</if>
+            <if test="viewCount != null">#{viewCount},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateClubActivity" parameterType="com.ruoyi.user.domain.ClubActivity">
+        update club_activity
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubId != null">club_id = #{clubId},</if>
+            <if test="activityTitle != null and activityTitle != ''">activity_title = #{activityTitle},</if>
+            <if test="activityType != null and activityType != ''">activity_type = #{activityType},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverUrl != null">cover_url = #{coverUrl},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="registrationStart != null">registration_start = #{registrationStart},</if>
+            <if test="registrationEnd != null">registration_end = #{registrationEnd},</if>
+            <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            <if test="currentParticipants != null">current_participants = #{currentParticipants},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="organizer != null">organizer = #{organizer},</if>
+            <if test="contactInfo != null">contact_info = #{contactInfo},</if>
+            <if test="isPublic != null">is_public = #{isPublic},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where activity_id = #{activityId}
+    </update>
+
+    <delete id="deleteClubActivityById" parameterType="Long">
+        update club_activity set del_flag = '2' where activity_id = #{activityId}
+    </delete>
+
+    <delete id="deleteClubActivityByIds" parameterType="String">
+        update club_activity set del_flag = '2' where activity_id in 
+        <foreach item="activityId" collection="array" open="(" separator="," close=")">
+            #{activityId}
+        </foreach>
+    </delete>
     <update id="updateActivityStatusBasedOnTime">
         UPDATE club_activity
         SET status = CASE
@@ -68,5 +155,4 @@
         END
         WHERE del_flag = '0' AND status != '3'
     </update>
-
 </mapper>

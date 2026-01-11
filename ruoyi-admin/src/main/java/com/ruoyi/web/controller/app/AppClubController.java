@@ -70,7 +70,10 @@ public class AppClubController extends BaseController {
 
     /**
      * 申请创建社团 (需要登录)
-     * TODO: 实际应该提交到 club_application 表，等待管理员审核
+     * TODO: 待实现业务逻辑：
+     * 1. 插入 club_application 表作为创建申请
+     * 2. 状态设置为待审核
+     * 3. 这里的 apply 应该是管理员审核通过后才在 club 表生成正式记录
      */
     @PostMapping("/apply")
     public AjaxResult apply(@RequestBody Club club) {
@@ -83,7 +86,10 @@ public class AppClubController extends BaseController {
 
     /**
      * 申请加入社团 (需要登录)
-     * TODO: 实际应该插入到 club_application 表
+     * TODO: 待实现业务逻辑：
+     * 1. 验证社团是否存在且开放加入
+     * 2. 验证用户是否已经是成员
+     * 3. 插入 club_application 表作为入社申请
      */
     @PostMapping("/join")
     public AjaxResult join(@RequestBody Club club) {

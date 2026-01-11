@@ -57,7 +57,12 @@ public class AppActivityController extends BaseController {
 
     /**
      * 报名参加活动 (需要登录)
-     * TODO: 实际应该插入到 club_activity_registration 表
+     * TODO: 待实现业务逻辑：
+     * 1. 验证活动是否存在且处于可报名状态
+     * 2. 验证用户是否已报名
+     * 3. 验证人数是否已满
+     * 4. 插入 club_activity_registration 表
+     * 5. 更新 club_activity 表的 current_participants 字段
      */
     @PostMapping("/register/{activityId}")
     public AjaxResult register(@PathVariable Long activityId) {

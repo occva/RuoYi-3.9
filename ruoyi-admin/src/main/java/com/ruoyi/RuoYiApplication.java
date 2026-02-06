@@ -25,9 +25,12 @@ public class RuoYiApplication {
     public static void main(String[] args) {
         // 记录启动开始时间
         startTime = System.currentTimeMillis();
-        log.info("===========================================");
-        log.info("社团管理系统正在启动...");
-        log.info("===========================================");
+        // 避免在 devtools 重启时重复打印启动日志
+        if (!"restartedMain".equals(Thread.currentThread().getName())) {
+            log.info("===========================================");
+            log.info("社团管理系统正在启动...");
+            log.info("===========================================");
+        }
 
         // System.setProperty("spring.devtools.restart.enabled", "false");
         SpringApplication application = new SpringApplication(RuoYiApplication.class);

@@ -86,4 +86,13 @@ public class ClubApplicationController extends BaseController {
     public AjaxResult remove(@PathVariable Long[] applicationIds) {
         return toAjax(clubApplicationService.deleteClubApplicationByIds(applicationIds));
     }
+
+    /**
+     * 获取申请统计数据
+     */
+    @PreAuthorize("@ss.hasPermi('club:application:list')")
+    @GetMapping("/stat")
+    public AjaxResult stat() {
+        return success(clubApplicationService.getStatData());
+    }
 }

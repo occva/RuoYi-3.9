@@ -56,4 +56,19 @@ public interface ClubApplicationMapper {
      * @return 结果
      */
     public int deleteClubApplicationByIds(Long[] applicationIds);
+
+    /**
+     * 统计各状态申请数量
+     */
+    public List<java.util.Map<String, Object>> selectStatusStat();
+
+    /**
+     * 统计近30天申请趋势
+     */
+    public List<java.util.Map<String, Object>> selectTrendStat();
+
+    /**
+     * 统计社团申请排名
+     */
+    public List<java.util.Map<String, Object>> selectClubRankingStat();
 }

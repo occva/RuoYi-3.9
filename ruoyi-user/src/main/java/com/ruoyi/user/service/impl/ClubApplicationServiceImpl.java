@@ -135,4 +135,16 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
     public int deleteClubApplicationById(Long applicationId) {
         return clubApplicationMapper.deleteClubApplicationById(applicationId);
     }
+
+    /**
+     * 获取申请统计数据
+     */
+    @Override
+    public java.util.Map<String, Object> getStatData() {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("statusStat", clubApplicationMapper.selectStatusStat());
+        map.put("trendStat", clubApplicationMapper.selectTrendStat());
+        map.put("clubRankingStat", clubApplicationMapper.selectClubRankingStat());
+        return map;
+    }
 }

@@ -6,7 +6,7 @@ INSERT INTO club_application (
     club_id, club_name, user_id, user_name, nick_name, 
     student_id, real_name, gender, major, grade, 
     class_name, phone, email, self_introduction, apply_reason, 
-    special_skills, application_time, 审核_status, create_by, create_time
+    special_skills, application_time, review_status, create_by, create_time
 ) VALUES (
     1000, '编程狂人社', 2, 'ry', '若依', 
     '20230101', '张三', '0', '计算机科学与技术', '2023级', 
@@ -18,7 +18,7 @@ INSERT INTO club_application (
     club_id, club_name, user_id, user_name, nick_name, 
     student_id, real_name, gender, major, grade, 
     class_name, phone, email, self_introduction, apply_reason, 
-    special_skills, application_time, 审核_status, create_by, create_time
+    special_skills, application_time, review_status, create_by, create_time
 ) VALUES (
     1001, '篮球协会', 3, 'test', '测试用户', 
     '20220505', '李四', '0', '体育教育', '2022级', 
@@ -30,7 +30,7 @@ INSERT INTO club_application (
     club_id, club_name, user_id, user_name, nick_name, 
     student_id, real_name, gender, major, grade, 
     class_name, phone, email, self_introduction, apply_reason, 
-    special_skills, application_time, 审核_status, create_by, create_time
+    special_skills, application_time, review_status, create_by, create_time
 ) VALUES (
     1002, '摄影协会', 103, 'student01', '光影追随者', 
     '20230912', '王小红', '1', '广告学', '2023级', 
@@ -42,7 +42,7 @@ INSERT INTO club_application (
     club_id, club_name, user_id, user_name, nick_name, 
     student_id, real_name, gender, major, grade, 
     class_name, phone, email, self_introduction, apply_reason, 
-    special_skills, application_time, 审核_status, create_by, create_time
+    special_skills, application_time, review_status, create_by, create_time
 ) VALUES (
     1000, '编程狂人社', 104, 'ai_lover', '算法达人', 
     '20210302', '赵六', '0', '人工智能', '2021级', 

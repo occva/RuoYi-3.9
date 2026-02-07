@@ -213,7 +213,7 @@ create table club_application (
   apply_reason      text                                       comment '申请理由',
   special_skills    varchar(500)    default ''                 comment '特长',
   application_time  datetime                                   comment '申请时间',
-  审核_status        char(1)         default '0'                comment '审核状态（0待审核 1已通过 2已拒绝 3已撤回）',
+  review_status     char(1)         default '0'                comment '审核状态（0待审核 1已通过 2已拒绝 3已撤回）',
   reviewer_id       bigint(20)                                 comment '审核人ID',
   reviewer_name     varchar(50)     default ''                 comment '审核人姓名',
   review_time       datetime                                   comment '审核时间',
@@ -227,7 +227,7 @@ create table club_application (
   primary key (application_id),
   key idx_application_club (club_id),
   key idx_application_user (user_id),
-  key idx_application_status (审核_status),
+  key idx_application_status (review_status),
   key idx_application_time (application_time)
 ) engine=innodb auto_increment=10000 comment = '入社申请表';
 

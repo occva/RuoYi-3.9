@@ -23,7 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="applyReason"    column="apply_reason"    />
         <result property="specialSkills"    column="special_skills"    />
         <result property="applicationTime"    column="application_time"    />
-        <result property="status"    column="审核_status"    />
+        <result property="status"    column="review_status"    />
         <result property="reviewerId"    column="reviewer_id"    />
         <result property="reviewerName"    column="reviewer_name"    />
         <result property="reviewTime"    column="review_time"    />
@@ -37,7 +37,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectClubApplicationVo">
-        select application_id, club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, 审核_status, reviewer_id, reviewer_name, review_time, review_comment, del_flag, create_by, create_time, update_by, update_time, remark from club_application
+        select application_id, club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, reviewer_id, reviewer_name, review_time, review_comment, del_flag, create_by, create_time, update_by, update_time, remark from club_application
     </sql>
 
     <select id="selectClubApplicationList" parameterType="com.ruoyi.user.domain.ClubApplication" resultMap="ClubApplicationResult">
@@ -50,7 +50,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
             <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
             <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
-            <if test="status != null  and status != ''"> and 审核_status = #{status}</if>
+            <if test="status != null  and status != ''"> and review_status = #{status}</if>
         </where>
         order by application_time desc
     </select>
@@ -80,7 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="applyReason != null">apply_reason,</if>
             <if test="specialSkills != null">special_skills,</if>
             <if test="applicationTime != null">application_time,</if>
-            <if test="status != null">审核_status,</if>
+            <if test="status != null">review_status,</if>
             <if test="reviewerId != null">reviewer_id,</if>
             <if test="reviewerName != null">reviewer_name,</if>
             <if test="reviewTime != null">review_time,</if>
@@ -144,7 +144,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="applyReason != null">apply_reason = #{applyReason},</if>
             <if test="specialSkills != null">special_skills = #{specialSkills},</if>
             <if test="applicationTime != null">application_time = #{applicationTime},</if>
-            <if test="status != null">审核_status = #{status},</if>
+            <if test="status != null">review_status = #{status},</if>
             <if test="reviewerId != null">reviewer_id = #{reviewerId},</if>
             <if test="reviewerName != null">reviewer_name = #{reviewerName},</if>
             <if test="reviewTime != null">review_time = #{reviewTime},</if>
@@ -169,4 +169,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{applicationId}
         </foreach>
     </delete>
+    <select id="selectStatusStat" resultType="java.util.Map">
+        SELECT review_status as status, count(*) as count 
+        FROM club_application 
+        WHERE del_flag = '0' 
+        GROUP BY review_status
+    </select>
+
+    <select id="selectTrendStat" resultType="java.util.Map">
+        SELECT DATE_FORMAT(application_time, '%m-%d') as day, count(*) as count 
+        FROM club_application 
+        WHERE del_flag = '0' 
+          AND application_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY day
+        ORDER BY day ASC
+    </select>
+
+    <select id="selectClubRankingStat" resultType="java.util.Map">
+        SELECT club_name as clubName, count(*) as count 
+        FROM club_application 
+        WHERE del_flag = '0' 
+        GROUP BY club_name 
+        ORDER BY count DESC 
+        LIMIT 10
+    </select>
 </mapper>

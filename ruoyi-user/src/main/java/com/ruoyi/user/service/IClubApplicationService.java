@@ -64,4 +64,9 @@ public interface IClubApplicationService {
      * @return 结果
      */
     public int deleteClubApplicationById(Long applicationId);
+
+    /**
+     * 获取申请统计数据
+     */
+    public java.util.Map<String, Object> getStatData();
 }

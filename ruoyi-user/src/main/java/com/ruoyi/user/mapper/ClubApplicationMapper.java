@@ -71,4 +71,19 @@ public interface ClubApplicationMapper {
      * 统计社团申请排名
      */
     public List<java.util.Map<String, Object>> selectClubRankingStat();
+
+    /**
+     * 统计昨日各状态申请数量
+     */
+    public List<java.util.Map<String, Object>> selectYesterdayStatusStat();
+
+    /**
+     * 按社团分组统计趋势数据
+     */
+    public List<java.util.Map<String, Object>> selectTrendStatByClub();
+
+    /**
+     * 按社团分组统计状态分布
+     */
+    public List<java.util.Map<String, Object>> selectStatusStatByClub();
 }

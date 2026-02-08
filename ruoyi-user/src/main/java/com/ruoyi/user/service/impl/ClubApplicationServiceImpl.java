@@ -142,9 +142,23 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
     @Override
     public java.util.Map<String, Object> getStatData() {
         java.util.Map<String, Object> map = new java.util.HashMap<>();
+
+        // 今日数据
         map.put("statusStat", clubApplicationMapper.selectStatusStat());
+
+        // 昨日数据（用于计算环比）
+        map.put("yesterdayStatusStat", clubApplicationMapper.selectYesterdayStatusStat());
+
+        // 趋势统计（含社团信息）
         map.put("trendStat", clubApplicationMapper.selectTrendStat());
+        map.put("trendStatByClub", clubApplicationMapper.selectTrendStatByClub());
+
+        // 状态分布（含社团信息）
+        map.put("statusStatByClub", clubApplicationMapper.selectStatusStatByClub());
+
+        // 社团排名
         map.put("clubRankingStat", clubApplicationMapper.selectClubRankingStat());
+
         return map;
     }
 }

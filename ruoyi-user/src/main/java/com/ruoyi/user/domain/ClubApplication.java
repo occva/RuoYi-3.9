@@ -26,6 +26,9 @@ public class ClubApplication extends BaseEntity {
     @Excel(name = "社团名称")
     private String clubName;
 
+    /** 社团Logo (关联查询) */
+    private String logoUrl;
+
     /** 用户ID */
     @Excel(name = "用户ID")
     private Long userId;
@@ -133,6 +136,14 @@ public class ClubApplication extends BaseEntity {
 
     public String getClubName() {
         return clubName;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
     }
 
     public void setUserId(Long userId) {

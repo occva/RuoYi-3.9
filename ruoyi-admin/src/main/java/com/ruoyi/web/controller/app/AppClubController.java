@@ -15,6 +15,8 @@ import com.ruoyi.user.domain.ClubMember;
 import com.ruoyi.user.service.IClubService;
 import com.ruoyi.user.service.IClubApplicationService;
 import com.ruoyi.user.service.IClubMemberService;
+import com.ruoyi.user.domain.ClubFavorite;
+import com.ruoyi.user.service.IClubFavoriteService;
 
 /**
  * 社团信息Controller (用户端 - 只读)
@@ -34,6 +36,9 @@ public class AppClubController extends BaseController {
 
     @Autowired
     private IClubMemberService memberService;
+
+    @Autowired
+    private IClubFavoriteService favoriteService;
 
     /**
      * 获取社团列表
@@ -69,6 +74,36 @@ public class AppClubController extends BaseController {
     }
 
     /**
+     * 获取我的社团 (已加入 + 管理的)
+     */
+    @GetMapping("/my")
+    public AjaxResult my() {
+        try {
+            SysUser user = getLoginUser().getUser();
+            Long userId = user.getUserId();
+
+            AjaxResult ajax = AjaxResult.success();
+            ajax.put("joined", clubService.selectClubListByUserId(userId));
+            ajax.put("managed", clubService.selectClubListByPresidentId(userId));
+
+            // 查询我的申请
+            ClubApplication appQuery = new ClubApplication();
+            appQuery.setUserId(userId);
+            appQuery.setDelFlag("0");
+            ajax.put("applications", applicationService.selectClubApplicationList(appQuery));
+
+            // 查询我的收藏
+            ClubFavorite favQuery = new ClubFavorite();
+            favQuery.setUserId(userId);
+            ajax.put("favorites", favoriteService.selectClubFavoriteList(favQuery));
+
+            return ajax;
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+    }
+
+    /**
      * 获取社团详情
      */
     @GetMapping("/{clubId}")
@@ -77,6 +112,40 @@ public class AppClubController extends BaseController {
         if (club == null || !"0".equals(club.getStatus())) {
             return error("社团不存在或已停用");
         }
+
+        // 检查用户状态 (是否成员/已申请)
+        try {
+            // getLoginUser() throws exception if not logged in in RuoYi
+            SysUser user = getLoginUser().getUser();
+            if (user != null) {
+                Long userId = user.getUserId();
+
+                // 1. 检查是否是成员
+                ClubMember memberQuery = new ClubMember();
+                memberQuery.setClubId(clubId);
+                memberQuery.setUserId(userId);
+                memberQuery.setDelFlag("0");
+                List<ClubMember> members = memberService.selectClubMemberList(memberQuery);
+                club.setMember(members != null && !members.isEmpty());
+
+                // 2. 如果不是成员，检查是否已申请
+                if (!club.isMember()) {
+                    ClubApplication appQuery = new ClubApplication();
+                    appQuery.setClubId(clubId);
+                    appQuery.setUserId(userId);
+                    appQuery.setStatus("0"); // 待审核
+                    appQuery.setDelFlag("0");
+                    List<ClubApplication> apps = applicationService.selectClubApplicationList(appQuery);
+                    club.setHasApplied(apps != null && !apps.isEmpty());
+                }
+
+                // 3. 检查是否已收藏
+                club.setFavorite(favoriteService.isFavorite(userId, clubId));
+            }
+        } catch (Exception e) {
+            // 用户未登录，忽略
+        }
+
         return success(club);
     }
 
@@ -158,5 +227,19 @@ public class AppClubController extends BaseController {
         }
 
         return success("申请已提交成功，请耐心等待社长审核");
+    }
+
+    /**
+     * 切换收藏状态
+     */
+    @PostMapping("/favorite/{clubId}")
+    public AjaxResult toggleFavorite(@PathVariable Long clubId) {
+        try {
+            SysUser user = getLoginUser().getUser();
+            boolean isFavorite = favoriteService.toggleFavorite(user.getUserId(), clubId);
+            return success(isFavorite ? "已收藏" : "已取消收藏");
+        } catch (Exception e) {
+            return error("操作失败，请重试");
+        }
     }
 }

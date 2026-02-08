@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubFavoriteMapper">
+    
+    <resultMap type="com.ruoyi.user.domain.ClubFavorite" id="ClubFavoriteResult">
+        <result property="favoriteId"    column="favorite_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="clubId"    column="club_id"    />
+        <result property="createTime"    column="create_time"    />
+        
+        <!-- Join values -->
+        <result property="clubName"      column="club_name" />
+        <result property="logoUrl"       column="logo_url" />
+    </resultMap>
+
+    <sql id="selectClubFavoriteVo">
+        select cf.favorite_id, cf.user_id, cf.club_id, cf.create_time,
+               c.club_name, c.logo_url
+        from club_favorite cf
+        left join club c on cf.club_id = c.club_id
+    </sql>
+
+    <select id="selectClubFavoriteList" parameterType="com.ruoyi.user.domain.ClubFavorite" resultMap="ClubFavoriteResult">
+        <include refid="selectClubFavoriteVo"/>
+        <where>  
+            <if test="userId != null "> and cf.user_id = #{userId}</if>
+            <if test="clubId != null "> and cf.club_id = #{clubId}</if>
+            <if test="clubName != null  and clubName != ''"> and c.club_name like concat('%', #{clubName}, '%')</if>
+        </where>
+        order by cf.create_time desc
+    </select>
+    
+    <select id="selectClubFavoriteById" parameterType="Long" resultMap="ClubFavoriteResult">
+        <include refid="selectClubFavoriteVo"/>
+        where cf.favorite_id = #{favoriteId}
+    </select>
+
+    <select id="checkFavorite" resultMap="ClubFavoriteResult">
+        <include refid="selectClubFavoriteVo"/>
+        where cf.user_id = #{userId} and cf.club_id = #{clubId}
+        limit 1
+    </select>
+        
+    <insert id="insertClubFavorite" parameterType="com.ruoyi.user.domain.ClubFavorite" useGeneratedKeys="true" keyProperty="favoriteId">
+        insert into club_favorite
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="clubId != null">club_id,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="clubId != null">#{clubId},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateClubFavorite" parameterType="com.ruoyi.user.domain.ClubFavorite">
+        update club_favorite
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="clubId != null">club_id = #{clubId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where favorite_id = #{favoriteId}
+    </update>
+
+    <delete id="deleteClubFavoriteById" parameterType="Long">
+        delete from club_favorite where favorite_id = #{favoriteId}
+    </delete>
+
+    <delete id="deleteClubFavoriteByIds" parameterType="String">
+        delete from club_favorite where favorite_id in 
+        <foreach item="favoriteId" collection="array" open="(" separator="," close=")">
+            #{favoriteId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteClubFavoriteByUserAndClub">
+        delete from club_favorite where user_id = #{userId} and club_id = #{clubId}
+    </delete>
+</mapper>

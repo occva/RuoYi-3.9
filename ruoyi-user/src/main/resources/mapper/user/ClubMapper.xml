@@ -75,6 +75,21 @@
         limit #{limit}
     </select>
 
+    <select id="selectClubListByUserId" parameterType="Long" resultMap="ClubResult">
+        <include refid="selectClubVo"/>
+        left join club_member cm on c.club_id = cm.club_id
+        where c.del_flag = '0' and c.status = '0'
+        and cm.user_id = #{userId} and cm.del_flag = '0'
+        order by cm.join_date desc
+    </select>
+
+    <select id="selectClubListByPresidentId" parameterType="Long" resultMap="ClubResult">
+        <include refid="selectClubVo"/>
+        where c.del_flag = '0' and c.status = '0'
+        and c.president_id = #{userId}
+        order by c.create_time desc
+    </select>
+
     <select id="checkClubCodeUnique" parameterType="String" resultMap="ClubResult">
         select club_id, club_code from club where club_code = #{clubCode} and del_flag = '0' limit 1
     </select>

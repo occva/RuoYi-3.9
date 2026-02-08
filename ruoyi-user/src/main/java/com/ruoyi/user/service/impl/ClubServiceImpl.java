@@ -81,4 +81,14 @@ public class ClubServiceImpl implements IClubService {
     public int updateClubPopular(Long[] clubIds, String isPopular, String updateBy) {
         return clubMapper.updateClubPopular(clubIds, isPopular, updateBy);
     }
+
+    @Override
+    public List<Club> selectClubListByUserId(Long userId) {
+        return clubMapper.selectClubListByUserId(userId);
+    }
+
+    @Override
+    public List<Club> selectClubListByPresidentId(Long userId) {
+        return clubMapper.selectClubListByPresidentId(userId);
+    }
 }

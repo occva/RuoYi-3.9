@@ -61,4 +61,14 @@ public interface IClubService {
      * 批量设置热门
      */
     int updateClubPopular(Long[] clubIds, String isPopular, String updateBy);
+
+    /**
+     * 查询用户加入的社团列表
+     */
+    List<Club> selectClubListByUserId(Long userId);
+
+    /**
+     * 查询用户管理的社团列表
+     */
+    List<Club> selectClubListByPresidentId(Long userId);
 }

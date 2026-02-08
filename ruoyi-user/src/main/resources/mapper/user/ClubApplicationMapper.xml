@@ -8,6 +8,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="applicationId"    column="application_id"    />
         <result property="clubId"    column="club_id"    />
         <result property="clubName"    column="club_name"    />
+        <result property="logoUrl"    column="logo_url"    />
         <result property="userId"    column="user_id"    />
         <result property="userName"    column="user_name"    />
         <result property="nickName"    column="nick_name"    />
@@ -41,18 +42,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </sql>
 
     <select id="selectClubApplicationList" parameterType="com.ruoyi.user.domain.ClubApplication" resultMap="ClubApplicationResult">
-        <include refid="selectClubApplicationVo"/>
+        select ca.application_id, ca.club_id, c.club_name, c.logo_url, ca.user_id, ca.user_name, ca.nick_name, ca.student_id, ca.real_name, ca.gender, ca.major, ca.grade, ca.class_name, ca.phone, ca.email, ca.self_introduction, ca.apply_reason, ca.special_skills, ca.application_time, ca.review_status, ca.reviewer_id, ca.reviewer_name, ca.review_time, ca.review_comment, ca.del_flag, ca.create_by, ca.create_time, ca.update_by, ca.update_time, ca.remark 
+        from club_application ca
+        left join club c on ca.club_id = c.club_id
         <where>  
-            del_flag = '0'
-            <if test="clubId != null "> and club_id = #{clubId}</if>
-            <if test="clubName != null  and clubName != ''"> and club_name like concat('%', #{clubName}, '%')</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
-            <if test="nickName != null  and nickName != ''"> and nick_name like concat('%', #{nickName}, '%')</if>
-            <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
-            <if test="status != null  and status != ''"> and review_status = #{status}</if>
+            ca.del_flag = '0'
+            <if test="clubId != null "> and ca.club_id = #{clubId}</if>
+            <if test="clubName != null  and clubName != ''"> and c.club_name like concat('%', #{clubName}, '%')</if>
+            <if test="userId != null "> and ca.user_id = #{userId}</if>
+            <if test="userName != null  and userName != ''"> and ca.user_name like concat('%', #{userName}, '%')</if>
+            <if test="nickName != null  and nickName != ''"> and ca.nick_name like concat('%', #{nickName}, '%')</if>
+            <if test="realName != null  and realName != ''"> and ca.real_name like concat('%', #{realName}, '%')</if>
+            <if test="status != null  and status != ''"> and ca.review_status = #{status}</if>
         </where>
-        order by application_time desc
+        order by ca.application_time desc
     </select>
     
     <select id="selectClubApplicationById" parameterType="Long" resultMap="ClubApplicationResult">
@@ -186,11 +189,43 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectClubRankingStat" resultType="java.util.Map">
-        SELECT club_name as clubName, count(*) as count 
-        FROM club_application 
-        WHERE del_flag = '0' 
-        GROUP BY club_name 
+        SELECT c.club_name as clubName, c.club_id as clubId, count(*) as count 
+        FROM club_application ca
+        LEFT JOIN club c ON ca.club_id = c.club_id
+        WHERE ca.del_flag = '0' 
+        GROUP BY c.club_name, c.club_id 
         ORDER BY count DESC 
         LIMIT 10
+    </select>
+
+    <select id="selectYesterdayStatusStat" resultType="java.util.Map">
+        SELECT review_status as status, count(*) as count 
+        FROM club_application 
+        WHERE del_flag = '0' 
+          AND DATE(application_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        GROUP BY review_status
+    </select>
+
+    <select id="selectTrendStatByClub" resultType="java.util.Map">
+        SELECT DATE_FORMAT(ca.application_time, '%m-%d') as day, 
+               c.club_name as clubName, 
+               count(*) as count 
+        FROM club_application ca
+        LEFT JOIN club c ON ca.club_id = c.club_id
+        WHERE ca.del_flag = '0' 
+          AND ca.application_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY day, c.club_name
+        ORDER BY day ASC, c.club_name ASC
+    </select>
+
+    <select id="selectStatusStatByClub" resultType="java.util.Map">
+        SELECT ca.review_status as status, 
+               c.club_name as clubName, 
+               count(*) as count 
+        FROM club_application ca
+        LEFT JOIN club c ON ca.club_id = c.club_id
+        WHERE ca.del_flag = '0' 
+        GROUP BY ca.review_status, c.club_name
+        ORDER BY status, c.club_name
     </select>
 </mapper>

@@ -254,14 +254,17 @@ public class Club extends BaseEntity {
         this.categoryName = categoryName;
     }
 
-    /** 是否是成员 (非数据库字段) */
+    /** 是否是成员 (接口返回字段，由Controller根据当前用户设置) */
     private boolean isMember;
 
-    /** 是否已申请 (非数据库字段) */
+    /** 是否已申请 (接口返回字段，由Controller根据当前用户设置) */
     private boolean hasApplied;
 
-    /** 是否已收藏 (非数据库字段) */
+    /** 是否已收藏 (接口返回字段，由Controller根据当前用户设置) */
     private boolean isFavorite;
+
+    /** 进行中的活动数量 (SQL子查询映射字段) */
+    private Integer ongoingActivityCount;
 
     public boolean isMember() {
         return isMember;
@@ -285,5 +288,13 @@ public class Club extends BaseEntity {
 
     public void setFavorite(boolean favorite) {
         isFavorite = favorite;
+    }
+
+    public Integer getOngoingActivityCount() {
+        return ongoingActivityCount;
+    }
+
+    public void setOngoingActivityCount(Integer ongoingActivityCount) {
+        this.ongoingActivityCount = ongoingActivityCount;
     }
 }

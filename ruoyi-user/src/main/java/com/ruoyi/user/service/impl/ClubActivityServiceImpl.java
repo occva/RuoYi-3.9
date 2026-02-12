@@ -55,4 +55,9 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     public void updateActivityStatusBasedOnTime() {
         clubActivityMapper.updateActivityStatusBasedOnTime();
     }
+
+    @Override
+    public int countOngoingByClubId(Long clubId) {
+        return clubActivityMapper.countOngoingByClubId(clubId);
+    }
 }

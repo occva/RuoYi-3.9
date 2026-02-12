@@ -34,6 +34,7 @@
         <result property="updateTime" column="update_time"/>
         <result property="remark" column="remark"/>
         <result property="categoryName" column="category_name"/>
+        <result property="ongoingActivityCount" column="ongoing_activity_count"/>
     </resultMap>
 
     <sql id="selectClubVo">
@@ -41,7 +42,8 @@
                c.president_id, c.president_name, c.vice_president, c.member_count, c.max_members, c.founded_date,
                c.location, c.contact_phone, c.contact_email, c.contact_qq, c.contact_wechat,
                c.is_recruiting, c.is_popular, c.view_count, c.favorite_count, c.sort_order, c.status, c.del_flag,
-               c.create_by, c.create_time, c.update_by, c.update_time, c.remark, cc.category_name
+               c.create_by, c.create_time, c.update_by, c.update_time, c.remark, cc.category_name,
+               (select count(*) from club_activity ca where ca.club_id = c.club_id and ca.del_flag = '0' and ca.status = '1') as ongoing_activity_count
         from club c
         left join club_category cc on c.category_id = cc.category_id
     </sql>

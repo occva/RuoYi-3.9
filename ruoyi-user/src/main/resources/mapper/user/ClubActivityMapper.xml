@@ -56,7 +56,7 @@
     <select id="selectActivityByClubId" parameterType="Long" resultMap="ClubActivityResult">
         <include refid="selectClubActivityVo"/>
         where a.club_id = #{clubId} and a.del_flag = '0'
-        order by a.start_time desc
+        order by a.end_time desc
     </select>
 
     <insert id="insertClubActivity" parameterType="com.ruoyi.user.domain.ClubActivity" useGeneratedKeys="true" keyProperty="activityId">
@@ -155,4 +155,11 @@
         END
         WHERE del_flag = '0' AND status != '3'
     </update>
+
+    <select id="countOngoingByClubId" parameterType="Long" resultType="int">
+        select count(*) from club_activity
+        where club_id = #{clubId} and del_flag = '0'
+        and status = '1'
+    </select>
+
 </mapper>

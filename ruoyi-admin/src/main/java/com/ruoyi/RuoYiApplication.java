@@ -8,12 +8,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 启动程序
  * 
  * @author ruoyi
  */
+@EnableScheduling
 @SpringBootApplication(exclude = { DataSourceAutoConfiguration.class })
 public class RuoYiApplication {
     /** 启动开始时间 */

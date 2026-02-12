@@ -22,4 +22,9 @@ public interface IClubActivityService {
     int deleteClubActivityByIds(Long[] activityIds);
 
     void updateActivityStatusBasedOnTime();
+
+    /**
+     * 统计社团进行中的活动数量
+     */
+    int countOngoingByClubId(Long clubId);
 }

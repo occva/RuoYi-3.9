@@ -56,4 +56,9 @@ public interface IClubMemberService {
      * @return 结果
      */
     public int deleteClubMemberById(Long memberId);
+
+    /**
+     * 获取成员统计数据
+     */
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime);
 }

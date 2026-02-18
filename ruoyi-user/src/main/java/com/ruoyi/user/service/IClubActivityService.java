@@ -27,4 +27,9 @@ public interface IClubActivityService {
      * 统计社团进行中的活动数量
      */
     int countOngoingByClubId(Long clubId);
+
+    /**
+     * 获取活动统计数据
+     */
+    java.util.Map<String, Object> getStatData(String beginTime, String endTime);
 }

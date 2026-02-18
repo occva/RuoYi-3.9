@@ -71,4 +71,9 @@ public interface IClubService {
      * 查询用户管理的社团列表
      */
     List<Club> selectClubListByPresidentId(Long userId);
+
+    /**
+     * 获取社团统计数据
+     */
+    java.util.Map<String, Object> getStatData(String beginTime, String endTime);
 }

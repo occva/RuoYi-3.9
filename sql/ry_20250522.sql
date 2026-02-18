@@ -265,7 +265,7 @@ insert into sys_menu values('3103', '荣誉管理', '3100', '3', 'achievement', 
 insert into sys_menu values('3200', '社团运营', '0', '2', 'club-operation',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'guide',   'admin', sysdate(), '', null, '社团运营管理目录');
 insert into sys_menu values('3201', '入社申请', '3200', '1', 'application',  'club/application/index',    '', '', 1, 0, 'C', '0', '0', 'system:application:list',       'form',    'admin', sysdate(), '', null, '入社申请审核');
 insert into sys_menu values('3202', '成员管理', '3200', '2', 'member',       'club/member/index',         '', '', 1, 0, 'C', '0', '0', 'system:member:list',            'user',    'admin', sysdate(), '', null, '社团成员管理');
-insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-stat', 'club/application/statistics', '', '', 1, 0, 'C', '0', '0', 'system:application:statistics', 'chart', 'admin', sysdate(), '', null, '申请数据统计');
+insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-stat', 'club/application/stat', '', '', 1, 0, 'C', '0', '0', 'system:application:statistics', 'chart', 'admin', sysdate(), '', null, '申请数据统计');
 -- 社团宣传
 insert into sys_menu values('3300', '社团宣传', '0', '3', 'club-promotion',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'message', 'admin', sysdate(), '', null, '社团宣传管理目录');
 insert into sys_menu values('3301', '活动管理', '3300', '1', 'activity',     'club/activity/index',       '', '', 1, 0, 'C', '0', '0', 'system:activity:list',          'date',    'admin', sysdate(), '', null, '社团活动管理');
@@ -273,9 +273,9 @@ insert into sys_menu values('3302', '公告管理', '3300', '2', 'notice',      
 insert into sys_menu values('3303', '相册管理', '3300', '3', 'album',        'club/album/index',          '', '', 1, 0, 'C', '0', '0', 'system:album:list',             'image',   'admin', sysdate(), '', null, '社团相册管理');
 -- 数据统计
 insert into sys_menu values('3400', '数据统计', '0', '4', 'statistics',      null,                        '', '', 1, 0, 'M', '0', '0', '',                             'chart',   'admin', sysdate(), '', null, '数据统计目录');
-insert into sys_menu values('3401', '社团统计', '3400', '1', 'club-stat',    'statistics/club/index',     '', '', 1, 0, 'C', '0', '0', 'system:statistics:club',        'peoples', 'admin', sysdate(), '', null, '社团数据统计');
-insert into sys_menu values('3402', '成员统计', '3400', '2', 'member-stat',  'statistics/member/index',   '', '', 1, 0, 'C', '0', '0', 'system:statistics:member',      'user',    'admin', sysdate(), '', null, '成员数据统计');
-insert into sys_menu values('3403', '活动统计', '3400', '3', 'activity-stat','statistics/activity/index',  '', '', 1, 0, 'C', '0', '0', 'system:statistics:activity',    'date',    'admin', sysdate(), '', null, '活动数据统计');
+insert into sys_menu values('3401', '社团统计', '3400', '1', 'club-stat',    'statistics/club-stat/index',     '', '', 1, 0, 'C', '0', '0', 'system:statistics:club',        'peoples', 'admin', sysdate(), '', null, '社团数据统计');
+insert into sys_menu values('3402', '成员统计', '3400', '2', 'member-stat',  'statistics/member-stat/index',   '', '', 1, 0, 'C', '0', '0', 'system:statistics:member',      'user',    'admin', sysdate(), '', null, '成员数据统计');
+insert into sys_menu values('3403', '活动统计', '3400', '3', 'activity-stat','statistics/activity-stat/index',  '', '', 1, 0, 'C', '0', '0', 'system:statistics:activity',    'date',    'admin', sysdate(), '', null, '活动数据统计');
 
 
 -- ----------------------------

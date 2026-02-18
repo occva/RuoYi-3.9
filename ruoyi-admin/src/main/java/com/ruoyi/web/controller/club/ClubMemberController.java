@@ -93,4 +93,14 @@ public class ClubMemberController extends BaseController {
     public AjaxResult remove(@PathVariable Long[] memberIds) {
         return toAjax(clubMemberService.deleteClubMemberByIds(memberIds));
     }
+
+    /**
+     * 获取成员统计数据
+     */
+    @PreAuthorize("@ss.hasPermi('club:member:list')")
+    @GetMapping("/stat")
+    public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {
+        return success(clubMemberService.getStatData(beginTime, endTime));
+    }
 }

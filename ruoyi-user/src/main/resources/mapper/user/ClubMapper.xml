@@ -216,4 +216,71 @@
         </foreach>
     </update>
 
+    <!-- 社团统计：按状态统计（支持日期筛选） -->
+    <select id="selectClubStatusStat" resultType="java.util.Map">
+        SELECT status, count(*) as count
+        FROM club
+        WHERE del_flag = '0'
+        <if test="beginTime != null and beginTime != ''">
+            AND DATE(create_time) &gt;= DATE(#{beginTime})
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND DATE(create_time) &lt;= DATE(#{endTime})
+        </if>
+        GROUP BY status
+    </select>
+
+    <!-- 社团统计：招新中数量（支持日期筛选） -->
+    <select id="selectClubRecruitingCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM club
+        WHERE del_flag = '0'
+          AND is_recruiting = '1'
+        <if test="beginTime != null and beginTime != ''">
+            AND DATE(create_time) &gt;= DATE(#{beginTime})
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND DATE(create_time) &lt;= DATE(#{endTime})
+        </if>
+    </select>
+
+    <!-- 社团统计：今日数据 -->
+    <select id="selectClubTodayStats" resultType="java.util.Map">
+        SELECT
+            (SELECT count(*) FROM club WHERE del_flag='0' AND DATE(create_time) = CURDATE()) as totalNew,
+            (SELECT count(*) FROM club WHERE del_flag='0' AND status='0' AND DATE(create_time) = CURDATE()) as activeNew,
+            (SELECT count(*) FROM club WHERE del_flag='0' AND status='1' AND DATE(create_time) = CURDATE()) as disabledNew,
+            (SELECT count(*) FROM club WHERE del_flag='0' AND is_recruiting='1' AND DATE(create_time) = CURDATE()) as recruitingNew
+    </select>
+
+    <!-- 社团统计：创建趋势（近30天） -->
+    <select id="selectClubTrendStat" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%m-%d') as day, count(*) as count
+        FROM club
+        WHERE del_flag = '0'
+          AND create_time &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY day
+        ORDER BY day ASC
+    </select>
+
+    <!-- 社团统计：分类分布 -->
+    <select id="selectClubCategoryStat" resultType="java.util.Map">
+        SELECT cc.category_name as categoryName, cc.category_id as categoryId, count(*) as count
+        FROM club c
+        LEFT JOIN club_category cc ON c.category_id = cc.category_id
+        WHERE c.del_flag = '0'
+        GROUP BY cc.category_name, cc.category_id
+        ORDER BY count DESC
+    </select>
+
+    <!-- 社团统计：成员数排名Top10 -->
+    <select id="selectClubMemberRanking" resultType="java.util.Map">
+        SELECT c.club_name as clubName, c.club_id as clubId, c.member_count as memberCount,
+               (SELECT count(*) FROM club_activity a WHERE a.club_id = c.club_id AND a.del_flag = '0') as activityCount
+        FROM club c
+        WHERE c.del_flag = '0'
+        ORDER BY c.member_count DESC
+        LIMIT 10
+    </select>
+
 </mapper>

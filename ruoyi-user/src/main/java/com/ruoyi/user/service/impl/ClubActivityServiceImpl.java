@@ -60,4 +60,15 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     public int countOngoingByClubId(Long clubId) {
         return clubActivityMapper.countOngoingByClubId(clubId);
     }
+
+    @Override
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("statusStat", clubActivityMapper.selectActivityStatusStat(beginTime, endTime));
+        map.put("todayStats", clubActivityMapper.selectActivityTodayStats());
+        map.put("trendStat", clubActivityMapper.selectActivityTrendStat());
+        map.put("typeStat", clubActivityMapper.selectActivityTypeStat());
+        map.put("clubRanking", clubActivityMapper.selectActivityClubRanking());
+        return map;
+    }
 }

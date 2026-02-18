@@ -162,4 +162,56 @@
         and status = '1'
     </select>
 
+    <!-- 活动统计：按状态统计（支持日期筛选） -->
+    <select id="selectActivityStatusStat" resultType="java.util.Map">
+        SELECT status, count(*) as count
+        FROM club_activity
+        WHERE del_flag = '0'
+        <if test="beginTime != null and beginTime != ''">
+            AND DATE(create_time) &gt;= DATE(#{beginTime})
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND DATE(create_time) &lt;= DATE(#{endTime})
+        </if>
+        GROUP BY status
+    </select>
+
+    <!-- 活动统计：今日数据 -->
+    <select id="selectActivityTodayStats" resultType="java.util.Map">
+        SELECT
+            (SELECT count(*) FROM club_activity WHERE del_flag='0' AND DATE(create_time) = CURDATE()) as totalNew,
+            (SELECT count(*) FROM club_activity WHERE del_flag='0' AND status='0' AND DATE(create_time) = CURDATE()) as upcomingNew,
+            (SELECT count(*) FROM club_activity WHERE del_flag='0' AND status='1' AND DATE(create_time) = CURDATE()) as ongoingNew,
+            (SELECT count(*) FROM club_activity WHERE del_flag='0' AND status='2' AND DATE(create_time) = CURDATE()) as endedNew
+    </select>
+
+    <!-- 活动统计：创建趋势（近30天） -->
+    <select id="selectActivityTrendStat" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%m-%d') as day, count(*) as count
+        FROM club_activity
+        WHERE del_flag = '0'
+          AND create_time &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY day
+        ORDER BY day ASC
+    </select>
+
+    <!-- 活动统计：类型分布 -->
+    <select id="selectActivityTypeStat" resultType="java.util.Map">
+        SELECT activity_type as activityType, count(*) as count
+        FROM club_activity
+        WHERE del_flag = '0'
+        GROUP BY activity_type
+    </select>
+
+    <!-- 活动统计：各社团活动排名Top10 -->
+    <select id="selectActivityClubRanking" resultType="java.util.Map">
+        SELECT c.club_name as clubName, c.club_id as clubId, count(*) as count
+        FROM club_activity a
+        LEFT JOIN club c ON a.club_id = c.club_id
+        WHERE a.del_flag = '0'
+        GROUP BY c.club_name, c.club_id
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
 </mapper>

@@ -1,6 +1,8 @@
 package com.ruoyi.user.mapper;
 
 import java.util.List;
+import java.util.Map;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.user.domain.ClubMember;
 
 /**
@@ -9,51 +11,31 @@ import com.ruoyi.user.domain.ClubMember;
  * @author ruoyi
  */
 public interface ClubMemberMapper {
-    /**
-     * 查询社团成员
-     * 
-     * @param memberId 社团成员ID
-     * @return 社团成员
-     */
     public ClubMember selectClubMemberById(Long memberId);
 
-    /**
-     * 查询社团成员列表
-     * 
-     * @param clubMember 社团成员
-     * @return 社团成员集合
-     */
     public List<ClubMember> selectClubMemberList(ClubMember clubMember);
 
-    /**
-     * 新增社团成员
-     * 
-     * @param clubMember 社团成员
-     * @return 结果
-     */
     public int insertClubMember(ClubMember clubMember);
 
-    /**
-     * 修改社团成员
-     * 
-     * @param clubMember 社团成员
-     * @return 结果
-     */
     public int updateClubMember(ClubMember clubMember);
 
-    /**
-     * 删除社团成员
-     * 
-     * @param memberId 社团成员ID
-     * @return 结果
-     */
     public int deleteClubMemberById(Long memberId);
 
-    /**
-     * 批量删除社团成员
-     * 
-     * @param memberIds 需要删除的数据ID
-     * @return 结果
-     */
     public int deleteClubMemberByIds(Long[] memberIds);
+
+    /** 成员统计 - 按状态统计 */
+    List<Map<String, Object>> selectMemberStatusStat(@Param("beginTime") String beginTime,
+            @Param("endTime") String endTime);
+
+    /** 成员统计 - 今日数据 */
+    Map<String, Object> selectMemberTodayStats();
+
+    /** 成员统计 - 入社趋势 */
+    List<Map<String, Object>> selectMemberTrendStat();
+
+    /** 成员统计 - 角色分布 */
+    List<Map<String, Object>> selectMemberRoleStat();
+
+    /** 成员统计 - 各社团成员排名 */
+    List<Map<String, Object>> selectMemberClubRanking();
 }

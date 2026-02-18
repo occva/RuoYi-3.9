@@ -85,4 +85,15 @@ public class ClubMemberServiceImpl implements IClubMemberService {
     public int deleteClubMemberById(Long memberId) {
         return clubMemberMapper.deleteClubMemberById(memberId);
     }
+
+    @Override
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("statusStat", clubMemberMapper.selectMemberStatusStat(beginTime, endTime));
+        map.put("todayStats", clubMemberMapper.selectMemberTodayStats());
+        map.put("trendStat", clubMemberMapper.selectMemberTrendStat());
+        map.put("roleStat", clubMemberMapper.selectMemberRoleStat());
+        map.put("clubRanking", clubMemberMapper.selectMemberClubRanking());
+        return map;
+    }
 }

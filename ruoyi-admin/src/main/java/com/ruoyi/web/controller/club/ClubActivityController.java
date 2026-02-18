@@ -81,4 +81,14 @@ public class ClubActivityController extends BaseController {
     public AjaxResult remove(@PathVariable Long[] activityIds) {
         return toAjax(clubActivityService.deleteClubActivityByIds(activityIds));
     }
+
+    /**
+     * 获取活动统计数据
+     */
+    @PreAuthorize("@ss.hasPermi('system:activity:list')")
+    @GetMapping("/stat")
+    public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {
+        return success(clubActivityService.getStatData(beginTime, endTime));
+    }
 }

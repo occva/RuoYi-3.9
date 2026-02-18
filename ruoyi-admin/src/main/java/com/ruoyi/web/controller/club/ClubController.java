@@ -141,6 +141,16 @@ public class ClubController extends BaseController {
     }
 
     /**
+     * 获取社团统计数据
+     */
+    @PreAuthorize("@ss.hasPermi('system:club:list')")
+    @GetMapping("/stat")
+    public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {
+        return success(clubService.getStatData(beginTime, endTime));
+    }
+
+    /**
      * 状态修改请求体
      */
     public static class ClubStatusRequest {

@@ -91,4 +91,16 @@ public class ClubServiceImpl implements IClubService {
     public List<Club> selectClubListByPresidentId(Long userId) {
         return clubMapper.selectClubListByPresidentId(userId);
     }
+
+    @Override
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("statusStat", clubMapper.selectClubStatusStat(beginTime, endTime));
+        map.put("recruitingCount", clubMapper.selectClubRecruitingCount(beginTime, endTime));
+        map.put("todayStats", clubMapper.selectClubTodayStats());
+        map.put("trendStat", clubMapper.selectClubTrendStat());
+        map.put("categoryStat", clubMapper.selectClubCategoryStat());
+        map.put("memberRanking", clubMapper.selectClubMemberRanking());
+        return map;
+    }
 }

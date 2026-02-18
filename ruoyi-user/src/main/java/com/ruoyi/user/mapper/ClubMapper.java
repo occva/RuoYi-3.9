@@ -1,6 +1,7 @@
 package com.ruoyi.user.mapper;
 
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import com.ruoyi.user.domain.Club;
 
@@ -79,4 +80,24 @@ public interface ClubMapper {
          * 查询用户管理的社团列表
          */
         List<Club> selectClubListByPresidentId(Long userId);
+
+        /** 社团统计 - 按状态统计 */
+        List<Map<String, Object>> selectClubStatusStat(@Param("beginTime") String beginTime,
+                        @Param("endTime") String endTime);
+
+        /** 社团统计 - 招新中数量 */
+        Integer selectClubRecruitingCount(@Param("beginTime") String beginTime,
+                        @Param("endTime") String endTime);
+
+        /** 社团统计 - 今日数据 */
+        Map<String, Object> selectClubTodayStats();
+
+        /** 社团统计 - 创建趋势 */
+        List<Map<String, Object>> selectClubTrendStat();
+
+        /** 社团统计 - 分类分布 */
+        List<Map<String, Object>> selectClubCategoryStat();
+
+        /** 社团统计 - 成员数排名Top10 */
+        List<Map<String, Object>> selectClubMemberRanking();
 }

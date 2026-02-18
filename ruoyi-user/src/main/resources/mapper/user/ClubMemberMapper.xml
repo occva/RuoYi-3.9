@@ -42,7 +42,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null "> and m.user_id = #{userId}</if>
             <if test="userName != null  and userName != ''"> and m.user_name like concat('%', #{userName}, '%')</if>
             <if test="nickName != null  and nickName != ''"> and m.nick_name like concat('%', #{nickName}, '%')</if>
-            <if test="roleType != null  and roleType != ''"> and m.role_type = #{roleType}</if>
+            <if test="roleType != null  and roleType != ''">
+                <choose>
+                    <when test="roleType.indexOf(',') != -1"> and FIND_IN_SET(m.role_type, #{roleType})</when>
+                    <otherwise> and m.role_type = #{roleType}</otherwise>
+                </choose>
+            </if>
             <if test="status != null  and status != ''"> and m.status = #{status}</if>
         </where>
     </select>
@@ -125,4 +130,56 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{memberId}
         </foreach>
     </delete>
+
+    <!-- 成员统计：按状态统计（支持日期筛选） -->
+    <select id="selectMemberStatusStat" resultType="java.util.Map">
+        SELECT status, count(*) as count
+        FROM club_member
+        WHERE del_flag = '0'
+        <if test="beginTime != null and beginTime != ''">
+            AND DATE(join_date) &gt;= DATE(#{beginTime})
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND DATE(join_date) &lt;= DATE(#{endTime})
+        </if>
+        GROUP BY status
+    </select>
+
+    <!-- 成员统计：今日数据 -->
+    <select id="selectMemberTodayStats" resultType="java.util.Map">
+        SELECT
+            (SELECT count(*) FROM club_member WHERE del_flag='0' AND DATE(join_date) = CURDATE()) as totalNew,
+            (SELECT count(*) FROM club_member WHERE del_flag='0' AND status='0' AND DATE(join_date) = CURDATE()) as activeNew,
+            (SELECT count(*) FROM club_member WHERE del_flag='0' AND status='1' AND DATE(join_date) = CURDATE()) as exitedNew
+    </select>
+
+    <!-- 成员统计：入社趋势（近30天） -->
+    <select id="selectMemberTrendStat" resultType="java.util.Map">
+        SELECT DATE_FORMAT(join_date, '%m-%d') as day, count(*) as count
+        FROM club_member
+        WHERE del_flag = '0'
+          AND join_date &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY day
+        ORDER BY day ASC
+    </select>
+
+    <!-- 成员统计：角色分布 -->
+    <select id="selectMemberRoleStat" resultType="java.util.Map">
+        SELECT role_type as roleType, count(*) as count
+        FROM club_member
+        WHERE del_flag = '0' AND status = '0'
+        GROUP BY role_type
+    </select>
+
+    <!-- 成员统计：各社团成员排名Top10 -->
+    <select id="selectMemberClubRanking" resultType="java.util.Map">
+        SELECT c.club_name as clubName, c.club_id as clubId, count(*) as count
+        FROM club_member m
+        LEFT JOIN club c ON m.club_id = c.club_id
+        WHERE m.del_flag = '0' AND m.status = '0'
+        GROUP BY c.club_name, c.club_id
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
 </mapper>

@@ -395,3 +395,124 @@ insert into sys_dict_type values(104, '社团角色', 'club_role_type', '0', 'ad
 insert into sys_dict_data values(118, 1, '社长', '1', 'club_role_type', '', 'danger', 'N', '0', 'admin', sysdate(), '', null, '');
 insert into sys_dict_data values(119, 2, '副社长', '2', 'club_role_type', '', 'warning', 'N', '0', 'admin', sysdate(), '', null, '');
 insert into sys_dict_data values(120, 3, '普通成员', '3', 'club_role_type', '', 'primary', 'N', '0', 'admin', sysdate(), '', null, '');
+
+-- 社团公告类型
+insert into sys_dict_type values(105, '社团公告类型', 'club_notice_type', '0', 'admin', sysdate(), '', null, '社团公告类型');
+insert into sys_dict_data values(121, 1, '通知', '1', 'club_notice_type', '', 'info', 'Y', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(122, 2, '公告', '2', 'club_notice_type', '', 'primary', 'N', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(123, 3, '紧急', '3', 'club_notice_type', '', 'danger', 'N', '0', 'admin', sysdate(), '', null, '');
+
+-- 社团公告状态
+insert into sys_dict_type values(106, '社团公告状态', 'club_notice_status', '0', 'admin', sysdate(), '', null, '社团公告状态');
+insert into sys_dict_data values(124, 1, '草稿', '0', 'club_notice_status', '', 'info', 'Y', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(125, 2, '已发布', '1', 'club_notice_status', '', 'success', 'N', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(126, 3, '已撤回', '2', 'club_notice_status', '', 'warning', 'N', '0', 'admin', sysdate(), '', null, '');
+
+-- 社团成员状态
+insert into sys_dict_type values(107, '社团成员状态', 'club_member_status', '0', 'admin', sysdate(), '', null, '社团成员状态');
+insert into sys_dict_data values(127, 1, '正常', '0', 'club_member_status', '', 'success', 'Y', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(128, 2, '禁言', '1', 'club_member_status', '', 'warning', 'N', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(129, 3, '已退社', '2', 'club_member_status', '', 'danger', 'N', '0', 'admin', sysdate(), '', null, '');
+
+-- 社团状态
+insert into sys_dict_type values(108, '社团状态', 'club_status', '0', 'admin', sysdate(), '', null, '社团状态');
+insert into sys_dict_data values(130, 1, '正常', '0', 'club_status', '', 'success', 'Y', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(131, 2, '停用', '1', 'club_status', '', 'danger', 'N', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(132, 3, '已解散', '2', 'club_status', '', 'info', 'N', '0', 'admin', sysdate(), '', null, '');
+
+-- 活动签到状态
+insert into sys_dict_type values(109, '活动签到状态', 'activity_checkin_status', '0', 'admin', sysdate(), '', null, '活动签到状态');
+insert into sys_dict_data values(133, 1, '未签到', '0', 'activity_checkin_status', '', 'info', 'Y', '0', 'admin', sysdate(), '', null, '');
+insert into sys_dict_data values(134, 2, '已签到', '1', 'activity_checkin_status', '', 'success', 'N', '0', 'admin', sysdate(), '', null, '');
+
+
+-- =====================================================
+-- 初始化-演示数据
+-- =====================================================
+
+-- ----------------------------
+-- 社团分类演示数据
+-- ----------------------------
+INSERT INTO club_category (category_id, category_code, category_name, sort_order, create_time, create_by) VALUES
+(1872500000000000001, 'technology', '科技类', 1, NOW(), 'admin'),
+(1872500000000000002, 'art', '艺术类', 2, NOW(), 'admin'),
+(1872500000000000003, 'sports', '体育类', 3, NOW(), 'admin'),
+(1872500000000000004, 'academic', '学术类', 4, NOW(), 'admin'),
+(1872500000000000005, 'volunteer', '志愿类', 5, NOW(), 'admin'),
+(1872500000000000006, 'test_234811', 'test_234811', 999, NOW(), 'admin');
+
+-- ----------------------------
+-- 社团演示数据
+-- ----------------------------
+INSERT INTO club (club_id, club_name, club_code, category_id, description, logo_url, member_count, president_id, president_name, vice_president, founded_date, location, remark, create_time, create_by) VALUES
+(1872600000000000001, '编程魔法师', 'coding_wizards', 1872500000000000001, '开发者分享知识、构建项目并参加黑客马拉松的社区。我们每周聚会一次，讨论最新的技术，开展开源项目，并为编程面试做准备。', 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800', 128, 102, '张明', '李华', '2020-09-01', '科技楼 304室', '每周三 18:00', NOW(), 'admin'),
+(1872600000000000002, '辩论协会', 'debate_society', 1872500000000000004, '通过每周对当前全球问题的辩论，磨练你的修辞和批判性思维能力。', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=800', 45, NULL, '鲍勃·史密斯', '', '2018-03-15', '学生活动中心 101', '每周二 17:00', NOW(), 'admin'),
+(1872600000000000003, '摄影俱乐部', 'photo_club', 1872500000000000002, '捕捉你周围的世界。每周摄影采风、工作坊和展览。', 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&q=80&w=800', 82, NULL, '查理·布朗', '', '2019-11-20', '艺术工作室 B', '每周四 16:30', NOW(), 'admin'),
+(1872600000000000004, '绿色地球', 'green_earth', 1872500000000000005, '通过校园倡议促进可持续发展和环境意识。', 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800', 200, NULL, '戴安娜', '', '2015-04-22', '社区花园', '每周五 15:00', NOW(), 'admin'),
+(1872600000000000005, '乐器合奏团', 'music_ensemble', 1872500000000000002, '加入其他音乐家进行即兴演奏、表演和音乐鉴赏之夜。', 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=800', 65, NULL, '埃文', '', '2016-09-10', '音乐厅', '每周一 19:00', NOW(), 'admin'),
+(1872600000000000006, '机器人俱乐部', 'robotics_club', 1872500000000000001, '建造和编程机器人。参加全国比赛并学习机电一体化。', 'https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?auto=format&fit=crop&q=80&w=800', 50, NULL, '菲奥娜', '', '2021-01-15', '工程实验室', '每周六 10:00', NOW(), 'admin'),
+(1872600000000000007, 'AI 研习社', 'ai_study_group', 1872500000000000001, '探索人工智能的前沿技术，包括深度学习、计算机视觉和自然语言处理。', 'https://plus.unsplash.com/premium_photo-1683121710572-7723bd2e235d?auto=format&fit=crop&q=80&w=800', 150, NULL, 'GPT-4', '', '2023-05-01', '创新中心 202', '每周五 14:00', NOW(), 'admin'),
+(1872600000000000008, '篮球社', 'basketball_club', 1872500000000000003, '热爱篮球的同学集结地，每周组织训练和校内友谊赛。', 'https://images.unsplash.com/photo-1546519638-68e109498ee2?auto=format&fit=crop&q=80&w=800', 90, NULL, '科比·粉丝', '', '2010-09-01', '北区篮球场', '每周二、四 18:00', NOW(), 'admin');
+
+-- ----------------------------
+-- 社团成员演示数据（社长/副社长）
+-- ----------------------------
+INSERT INTO club_member (club_id, user_id, user_name, nick_name, role_type, position_name, join_date, status, del_flag, create_by, create_time)
+VALUES (1872600000000000001, 102, 'president1', '张明', '1', '社长', NOW(), '0', '0', 'admin', NOW());
+INSERT INTO club_member (club_id, user_id, user_name, nick_name, role_type, position_name, join_date, status, del_flag, create_by, create_time)
+VALUES (1872600000000000001, 103, 'vicepresident1', '李华', '2', '副社长', NOW(), '0', '0', 'admin', NOW());
+
+-- ----------------------------
+-- 活动演示数据
+-- ----------------------------
+INSERT INTO club_activity (activity_id, club_id, activity_title, start_time, location, status, description, create_time, create_by) VALUES
+(1872700000000000001, 1872600000000000001, '黑客马拉松备战之夜', '2024-10-15 18:00:00', '304室', '1', '备战即将到来的黑客马拉松，分享创意和组队。', NOW(), 'admin'),
+(1872700000000000002, 1872600000000000001, '特邀嘉宾：谷歌工程师', '2024-09-28 14:00:00', 'A号礼堂', '2', '来自谷歌的高级工程师分享职业发展经验。', NOW(), 'admin'),
+(1872700000000000003, 1872600000000000001, 'React 进阶工作坊', '2024-11-05 19:00:00', '2号实验室', '0', '深入理解React Hooks和性能优化。', NOW(), 'admin');
+
+INSERT INTO club_activity (activity_id, club_id, activity_title, activity_type, description, cover_url, location, start_time, end_time, status, is_public, create_time, create_by) VALUES
+(1872700000000000004, 1872600000000000002, '全校辩论大赛：网络社交是否取代了面对面交流', '比赛', '探讨现代科技对人类社交模式的影响。冠军将获得精美奖品！', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=800', '演讲厅', NOW() + INTERVAL 5 DAY, NOW() + INTERVAL 5 DAY + INTERVAL 3 HOUR, '0', '1', NOW(), 'admin'),
+(1872700000000000005, 1872600000000000002, '辩论技巧工作坊', '培训', '学习如何构建有说服力的论点并提升临场反应能力。', 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=800', '101会议室', NOW() - INTERVAL 1 DAY, NOW() - INTERVAL 1 DAY + INTERVAL 2 HOUR, '2', '1', NOW(), 'admin'),
+(1872700000000000006, 1872600000000000003, '秋季校园外拍：寻找光影', '外拍', '拿起相机，记录下秋天校园里最美的瞬间。', 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&q=80&w=800', '博雅湖畔', NOW() + INTERVAL 2 DAY, NOW() + INTERVAL 2 DAY + INTERVAL 4 HOUR, '0', '1', NOW(), 'admin'),
+(1872700000000000007, 1872600000000000003, '后期处理入门：Lightroom 实操', '培训', '由资深摄影师指导，教你如何修出电影感大片。', 'https://images.unsplash.com/photo-1554048612-b6a482bc67e5?auto=format&fit=crop&q=80&w=800', '机房501', NOW(), NOW() + INTERVAL 2 HOUR, '1', '1', NOW(), 'admin'),
+(1872700000000000008, 1872600000000000004, '"植"得期待：校园公益植树行动', '公益', '为了更绿色的校园，我们一起动手种下希望的树苗。', 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800', '西区实验田', NOW() + INTERVAL 10 DAY, NOW() + INTERVAL 10 DAY + INTERVAL 5 HOUR, '0', '1', NOW(), 'admin'),
+(1872700000000000009, 1872600000000000005, '仲夏之夜：草坪草地音乐会', '演出', '在星空下，倾听古典与现代乐器的交织与融合。', 'https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=800', '大操场草坪', NOW() + INTERVAL 7 DAY, NOW() + INTERVAL 7 DAY + INTERVAL 2 HOUR, '0', '1', NOW(), 'admin'),
+(1872700000000000010, 1872600000000000006, '格斗机器人组装体验日', '动手', '想亲手制作一个能战斗的机器人吗？快来加入我们！', 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800', '机器人实验室', NOW() + INTERVAL 1 DAY, NOW() + INTERVAL 1 DAY + INTERVAL 4 HOUR, '0', '1', NOW(), 'admin'),
+(1872700000000000011, 1872600000000000007, '深度学习论文研讨会', '学术', '本周探讨最新的计算机视觉模型及其在工业界的落地。', 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&q=80&w=800', '202教室', NOW() - INTERVAL 2 HOUR, NOW() + INTERVAL 1 HOUR, '1', '1', NOW(), 'admin'),
+(1872700000000000012, 1872600000000000008, '三对三邀请战：谁是路人王？', '比赛', '热血篮球，就在此刻。期待全校各路高手前来挑战。', 'https://images.unsplash.com/photo-1519766304817-4f37bda74a26?auto=format&fit=crop&q=80&w=800', '室内篮球场', NOW() + INTERVAL 4 DAY, NOW() + INTERVAL 4 DAY + INTERVAL 6 HOUR, '0', '1', NOW(), 'admin');
+
+-- ----------------------------
+-- 公告演示数据
+-- ----------------------------
+INSERT INTO club_notice (notice_id, club_id, notice_title, notice_content, publish_time, status, create_time, create_by) VALUES
+(1872800000000000001, 1872600000000000001, '会费缴纳通知', '请在月底前缴纳会员费。', '2024-10-01 09:00:00', '1', NOW(), 'admin'),
+(1872800000000000002, 1872600000000000001, '迎新会确认', '本周五的迎新会已确认！', '2024-09-15 10:00:00', '1', NOW(), 'admin');
+
+-- ----------------------------
+-- 荣誉演示数据
+-- ----------------------------
+INSERT INTO club_achievement (achievement_id, club_id, achievement_title, achievement_type, description, image_url, achieve_date, level, sort_order, status, create_time, create_by) VALUES
+(1001, 1872600000000000001, '全国大学生编程大赛金奖', 'competition', '在2024年全国大学生编程大赛中荣获团队金奖', 'https://images.unsplash.com/photo-1578357078586-491adc1c4aa0?q=80&w=400', '2024-05-20', '国家级', 1, '0', NOW(), 'admin'),
+(1002, 1872600000000000001, '校内优秀社团', 'award', '2023年度校级优秀学生社团荣誉称号', '', '2023-12-15', '校级', 2, '0', NOW(), 'admin'),
+(1003, 1872600000000000003, '省级摄影展一等奖', 'competition', '社团成员在全省高校联合摄影展中获得第一名', 'https://images.unsplash.com/photo-1620662831351-9f693521fd1f?q=80&w=400', '2024-03-10', '省级', 1, '0', NOW(), 'admin');
+
+-- ----------------------------
+-- 入社申请演示数据
+-- ----------------------------
+INSERT INTO club_application (club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, create_by, create_time)
+VALUES (1872600000000000001, '编程魔法师', 2, 'ry', '若依', '20230101', '张三', '0', '计算机科学与技术', '2023级', '1班', '13888888888', 'zhangsan@example.com', '我是一名大一新生，对编程有着极其浓厚的兴趣，自学过Python和Java。', '希望通过加入社团提升实战能力，并结交志同道合的朋友。', '熟练使用Git，参加过校级编程比赛。', NOW(), '0', 'system', NOW());
+INSERT INTO club_application (club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, create_by, create_time)
+VALUES (1872600000000000008, '篮球社', 3, 'test', '测试用户', '20220505', '李四', '0', '体育教育', '2022级', '3班', '13999999999', 'lisi@example.com', '以前在高中是校篮球队的队长，司职控球后卫。', '想在大学继续挥洒汗水，为校争光。', '擅长三分投射和组织进攻。', NOW(), '0', 'system', NOW());
+INSERT INTO club_application (club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, create_by, create_time)
+VALUES (1872600000000000003, '摄影俱乐部', 103, 'vicepresident1', '光影追随者', '20230912', '王小红', '1', '广告学', '2023级', '2班', '13777777777', 'wangxh@example.com', '喜欢记录生活中的美好瞬间，有一台自己的单反相机。', '希望能学习更多摄影构图和后期修图技巧。', '熟悉PS和Lightroom。', NOW(), '0', 'system', NOW());
+INSERT INTO club_application (club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, create_by, create_time)
+VALUES (1872600000000000001, '编程魔法师', 104, 'ai_lover', '算法达人', '20210302', '赵六', '0', '人工智能', '2021级', 'S班', '13666666666', 'zhaoliu@example.com', '大三学长，对大模型和深度学习有较深研究。', '想带带学弟学妹，整理社团技术资料库。', '精通PyTorch和TensorFlow。', NOW(), '0', 'system', NOW());
+INSERT INTO club_application (club_id, club_name, user_id, user_name, nick_name, student_id, real_name, gender, major, grade, class_name, phone, email, self_introduction, apply_reason, special_skills, application_time, review_status, create_by, create_time)
+VALUES (1872600000000000000, '编程狂人社', 2, 'ry', '若依', '20230101', '张三', '0', '计算机科学与技术', '2023级', '1班', '13888888888', 'zhangsan@example.com', '我是一名大一新生，对编程有着极其浓厚的兴趣，自学过Python和Java。', '希望通过加入社团提升实战能力，并结交志同道合的朋友。', '熟练使用Git，参加过校级编程比赛。', NOW(), '0', 'system', NOW());
+
+-- ----------------------------
+-- 收藏演示数据
+-- ----------------------------
+INSERT INTO club_favorite (favorite_id, club_id, user_id, create_time)
+VALUES (10004, 1872600000000000001, 1, NOW());
+

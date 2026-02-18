@@ -68,6 +68,11 @@ create table sys_user (
 -- ----------------------------
 insert into sys_user values(1,  103, 'admin', '若依', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), sysdate(), 'admin', sysdate(), '', null, '管理员');
 insert into sys_user values(2,  105, 'ry',    '若依', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), sysdate(), 'admin', sysdate(), '', null, '测试员');
+insert into sys_user values(101, 100, 'clubadmin',      '社团管理员',     '00', 'clubadmin@example.com',  '13800000001', '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', null, sysdate(), 'admin', sysdate(), '', null, '社团管理员测试账号');
+insert into sys_user values(102, 100, 'president1',     '张明（社长）',   '00', 'president1@example.com', '13800000002', '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', null, sysdate(), 'admin', sysdate(), '', null, '编程魔法社社长');
+insert into sys_user values(103, 100, 'vicepresident1', '李华（副社长）', '00', 'vp1@example.com',       '13800000003', '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', null, sysdate(), 'admin', sysdate(), '', null, '编程魔法社副社长');
+insert into sys_user values(100, null, 'r1',             'r1',             '00', '',                      '',             '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', null, sysdate(), 'admin', sysdate(), '', null, '测试用户');
+insert into sys_user values(104, null, 'test_user_004',  'test_user_004',  '00', '',                      '',             '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', null, sysdate(), 'admin', sysdate(), '', null, '测试用户');
 
 
 -- ----------------------------
@@ -125,6 +130,9 @@ create table sys_role (
 -- ----------------------------
 insert into sys_role values('1', '超级管理员',  'admin',  1, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, '超级管理员');
 insert into sys_role values('2', '普通角色',    'common', 2, 2, 1, 1, '0', '0', 'admin', sysdate(), '', null, '普通角色');
+insert into sys_role values('100', '社团管理员', 'club_admin', 3, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, '可管理所有社团信息');
+insert into sys_role values('101', '社长',       'president', 4, 5, 1, 1, '0', '0', 'admin', sysdate(), '', null, '管理自己的社团');
+insert into sys_role values('102', '副社长',     'vice_president', 5, 5, 1, 1, '0', '0', 'admin', sysdate(), '', null, '协助管理社团');
 
 
 -- ----------------------------
@@ -161,8 +169,6 @@ create table sys_menu (
 -- 一级菜单
 insert into sys_menu values('1', '系统管理', '0', '1', 'system',           null, '', '', 1, 0, 'M', '0', '0', '', 'system',   'admin', sysdate(), '', null, '系统管理目录');
 insert into sys_menu values('2', '系统监控', '0', '2', 'monitor',          null, '', '', 1, 0, 'M', '0', '0', '', 'monitor',  'admin', sysdate(), '', null, '系统监控目录');
-insert into sys_menu values('3', '系统工具', '0', '3', 'tool',             null, '', '', 1, 0, 'M', '0', '0', '', 'tool',     'admin', sysdate(), '', null, '系统工具目录');
-insert into sys_menu values('4', '若依官网', '0', '4', 'http://ruoyi.vip', null, '', '', 0, 0, 'M', '0', '0', '', 'guide',    'admin', sysdate(), '', null, '若依官网地址');
 -- 二级菜单
 insert into sys_menu values('100',  '用户管理', '1',   '1', 'user',       'system/user/index',        '', '', 1, 0, 'C', '0', '0', 'system:user:list',        'user',          'admin', sysdate(), '', null, '用户管理菜单');
 insert into sys_menu values('101',  '角色管理', '1',   '2', 'role',       'system/role/index',        '', '', 1, 0, 'C', '0', '0', 'system:role:list',        'peoples',       'admin', sysdate(), '', null, '角色管理菜单');
@@ -175,13 +181,9 @@ insert into sys_menu values('107',  '通知公告', '1',   '8', 'notice',     's
 insert into sys_menu values('108',  '日志管理', '1',   '9', 'log',        '',                         '', '', 1, 0, 'M', '0', '0', '',                        'log',           'admin', sysdate(), '', null, '日志管理菜单');
 insert into sys_menu values('109',  '在线用户', '2',   '1', 'online',     'monitor/online/index',     '', '', 1, 0, 'C', '0', '0', 'monitor:online:list',     'online',        'admin', sysdate(), '', null, '在线用户菜单');
 insert into sys_menu values('110',  '定时任务', '2',   '2', 'job',        'monitor/job/index',        '', '', 1, 0, 'C', '0', '0', 'monitor:job:list',        'job',           'admin', sysdate(), '', null, '定时任务菜单');
-insert into sys_menu values('111',  '数据监控', '2',   '3', 'druid',      'monitor/druid/index',      '', '', 1, 0, 'C', '0', '0', 'monitor:druid:list',      'druid',         'admin', sysdate(), '', null, '数据监控菜单');
 insert into sys_menu values('112',  '服务监控', '2',   '4', 'server',     'monitor/server/index',     '', '', 1, 0, 'C', '0', '0', 'monitor:server:list',     'server',        'admin', sysdate(), '', null, '服务监控菜单');
 insert into sys_menu values('113',  '缓存监控', '2',   '5', 'cache',      'monitor/cache/index',      '', '', 1, 0, 'C', '0', '0', 'monitor:cache:list',      'redis',         'admin', sysdate(), '', null, '缓存监控菜单');
 insert into sys_menu values('114',  '缓存列表', '2',   '6', 'cacheList',  'monitor/cache/list',       '', '', 1, 0, 'C', '0', '0', 'monitor:cache:list',      'redis-list',    'admin', sysdate(), '', null, '缓存列表菜单');
-insert into sys_menu values('115',  '表单构建', '3',   '1', 'build',      'tool/build/index',         '', '', 1, 0, 'C', '0', '0', 'tool:build:list',         'build',         'admin', sysdate(), '', null, '表单构建菜单');
-insert into sys_menu values('116',  '代码生成', '3',   '2', 'gen',        'tool/gen/index',           '', '', 1, 0, 'C', '0', '0', 'tool:gen:list',           'code',          'admin', sysdate(), '', null, '代码生成菜单');
-insert into sys_menu values('117',  '系统接口', '3',   '3', 'swagger',    'tool/swagger/index',       '', '', 1, 0, 'C', '0', '0', 'tool:swagger:list',       'swagger',       'admin', sysdate(), '', null, '系统接口菜单');
 -- 三级菜单
 insert into sys_menu values('500',  '操作日志', '108', '1', 'operlog',    'monitor/operlog/index',    '', '', 1, 0, 'C', '0', '0', 'monitor:operlog:list',    'form',          'admin', sysdate(), '', null, '操作日志菜单');
 insert into sys_menu values('501',  '登录日志', '108', '2', 'logininfor', 'monitor/logininfor/index', '', '', 1, 0, 'C', '0', '0', 'monitor:logininfor:list', 'logininfor',    'admin', sysdate(), '', null, '登录日志菜单');
@@ -252,13 +254,28 @@ insert into sys_menu values('1051', '任务修改', '110', '3', '#', '', '', '',
 insert into sys_menu values('1052', '任务删除', '110', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'monitor:job:remove',         '#', 'admin', sysdate(), '', null, '');
 insert into sys_menu values('1053', '状态修改', '110', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'monitor:job:changeStatus',   '#', 'admin', sysdate(), '', null, '');
 insert into sys_menu values('1054', '任务导出', '110', '6', '#', '', '', '', 1, 0, 'F', '0', '0', 'monitor:job:export',         '#', 'admin', sysdate(), '', null, '');
--- 代码生成按钮
-insert into sys_menu values('1055', '生成查询', '116', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:query',             '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('1056', '生成修改', '116', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:edit',              '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('1057', '生成删除', '116', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:remove',            '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('1058', '导入代码', '116', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:import',            '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('1059', '预览代码', '116', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:preview',           '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('1060', '生成代码', '116', '6', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:code',              '#', 'admin', sysdate(), '', null, '');
+
+-- 社团管理菜单
+-- 社团信息
+insert into sys_menu values('3100', '社团信息', '0', '1', 'club-info',      null,                        '', '', 1, 0, 'M', '0', '0', '',                             'club',    'admin', sysdate(), '', null, '社团信息管理目录');
+insert into sys_menu values('3101', '社团列表', '3100', '1', 'list',         'club/list/index',           '', '', 1, 0, 'C', '0', '0', 'system:club:list',              'peoples', 'admin', sysdate(), '', null, '社团列表管理');
+insert into sys_menu values('3102', '社团分类', '3100', '2', 'category',     'club/category/index',       '', '', 1, 0, 'C', '0', '0', 'system:category:list',          'tree',    'admin', sysdate(), '', null, '社团分类管理');
+insert into sys_menu values('3103', '荣誉管理', '3100', '3', 'achievement',  'club/achievement/index',    '', '', 1, 0, 'C', '0', '0', 'system:achievement:list',       'star',    'admin', sysdate(), '', null, '社团荣誉管理');
+-- 社团运营
+insert into sys_menu values('3200', '社团运营', '0', '2', 'club-operation',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'guide',   'admin', sysdate(), '', null, '社团运营管理目录');
+insert into sys_menu values('3201', '入社申请', '3200', '1', 'application',  'club/application/index',    '', '', 1, 0, 'C', '0', '0', 'system:application:list',       'form',    'admin', sysdate(), '', null, '入社申请审核');
+insert into sys_menu values('3202', '成员管理', '3200', '2', 'member',       'club/member/index',         '', '', 1, 0, 'C', '0', '0', 'system:member:list',            'user',    'admin', sysdate(), '', null, '社团成员管理');
+insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-stat', 'club/application/statistics', '', '', 1, 0, 'C', '0', '0', 'system:application:statistics', 'chart', 'admin', sysdate(), '', null, '申请数据统计');
+-- 社团宣传
+insert into sys_menu values('3300', '社团宣传', '0', '3', 'club-promotion',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'message', 'admin', sysdate(), '', null, '社团宣传管理目录');
+insert into sys_menu values('3301', '活动管理', '3300', '1', 'activity',     'club/activity/index',       '', '', 1, 0, 'C', '0', '0', 'system:activity:list',          'date',    'admin', sysdate(), '', null, '社团活动管理');
+insert into sys_menu values('3302', '公告管理', '3300', '2', 'notice',       'club/notice/index',         '', '', 1, 0, 'C', '0', '0', 'system:notice:list',            'message', 'admin', sysdate(), '', null, '社团公告管理');
+insert into sys_menu values('3303', '相册管理', '3300', '3', 'album',        'club/album/index',          '', '', 1, 0, 'C', '0', '0', 'system:album:list',             'image',   'admin', sysdate(), '', null, '社团相册管理');
+-- 数据统计
+insert into sys_menu values('3400', '数据统计', '0', '4', 'statistics',      null,                        '', '', 1, 0, 'M', '0', '0', '',                             'chart',   'admin', sysdate(), '', null, '数据统计目录');
+insert into sys_menu values('3401', '社团统计', '3400', '1', 'club-stat',    'statistics/club/index',     '', '', 1, 0, 'C', '0', '0', 'system:statistics:club',        'peoples', 'admin', sysdate(), '', null, '社团数据统计');
+insert into sys_menu values('3402', '成员统计', '3400', '2', 'member-stat',  'statistics/member/index',   '', '', 1, 0, 'C', '0', '0', 'system:statistics:member',      'user',    'admin', sysdate(), '', null, '成员数据统计');
+insert into sys_menu values('3403', '活动统计', '3400', '3', 'activity-stat','statistics/activity/index',  '', '', 1, 0, 'C', '0', '0', 'system:statistics:activity',    'date',    'admin', sysdate(), '', null, '活动数据统计');
 
 
 -- ----------------------------
@@ -276,6 +293,11 @@ create table sys_user_role (
 -- ----------------------------
 insert into sys_user_role values ('1', '1');
 insert into sys_user_role values ('2', '2');
+insert into sys_user_role values ('100', '2');
+insert into sys_user_role values ('101', '100');
+insert into sys_user_role values ('102', '101');
+insert into sys_user_role values ('103', '102');
+insert into sys_user_role values ('104', '2');
 
 
 -- ----------------------------
@@ -293,8 +315,6 @@ create table sys_role_menu (
 -- ----------------------------
 insert into sys_role_menu values ('2', '1');
 insert into sys_role_menu values ('2', '2');
-insert into sys_role_menu values ('2', '3');
-insert into sys_role_menu values ('2', '4');
 insert into sys_role_menu values ('2', '100');
 insert into sys_role_menu values ('2', '101');
 insert into sys_role_menu values ('2', '102');
@@ -306,13 +326,9 @@ insert into sys_role_menu values ('2', '107');
 insert into sys_role_menu values ('2', '108');
 insert into sys_role_menu values ('2', '109');
 insert into sys_role_menu values ('2', '110');
-insert into sys_role_menu values ('2', '111');
 insert into sys_role_menu values ('2', '112');
 insert into sys_role_menu values ('2', '113');
 insert into sys_role_menu values ('2', '114');
-insert into sys_role_menu values ('2', '115');
-insert into sys_role_menu values ('2', '116');
-insert into sys_role_menu values ('2', '117');
 insert into sys_role_menu values ('2', '500');
 insert into sys_role_menu values ('2', '501');
 insert into sys_role_menu values ('2', '1000');
@@ -370,12 +386,68 @@ insert into sys_role_menu values ('2', '1051');
 insert into sys_role_menu values ('2', '1052');
 insert into sys_role_menu values ('2', '1053');
 insert into sys_role_menu values ('2', '1054');
-insert into sys_role_menu values ('2', '1055');
-insert into sys_role_menu values ('2', '1056');
-insert into sys_role_menu values ('2', '1057');
-insert into sys_role_menu values ('2', '1058');
-insert into sys_role_menu values ('2', '1059');
-insert into sys_role_menu values ('2', '1060');
+
+-- 管理员(role_id=1)拥有所有社团菜单
+insert into sys_role_menu values ('1', '3100');
+insert into sys_role_menu values ('1', '3101');
+insert into sys_role_menu values ('1', '3102');
+insert into sys_role_menu values ('1', '3103');
+insert into sys_role_menu values ('1', '3200');
+insert into sys_role_menu values ('1', '3201');
+insert into sys_role_menu values ('1', '3202');
+insert into sys_role_menu values ('1', '3203');
+insert into sys_role_menu values ('1', '3300');
+insert into sys_role_menu values ('1', '3301');
+insert into sys_role_menu values ('1', '3302');
+insert into sys_role_menu values ('1', '3303');
+insert into sys_role_menu values ('1', '3400');
+insert into sys_role_menu values ('1', '3401');
+insert into sys_role_menu values ('1', '3402');
+insert into sys_role_menu values ('1', '3403');
+
+-- 社团管理员(role_id=100)拥有所有社团菜单
+insert into sys_role_menu values ('100', '3100');
+insert into sys_role_menu values ('100', '3101');
+insert into sys_role_menu values ('100', '3102');
+insert into sys_role_menu values ('100', '3103');
+insert into sys_role_menu values ('100', '3200');
+insert into sys_role_menu values ('100', '3201');
+insert into sys_role_menu values ('100', '3202');
+insert into sys_role_menu values ('100', '3203');
+insert into sys_role_menu values ('100', '3300');
+insert into sys_role_menu values ('100', '3301');
+insert into sys_role_menu values ('100', '3302');
+insert into sys_role_menu values ('100', '3303');
+insert into sys_role_menu values ('100', '3400');
+insert into sys_role_menu values ('100', '3401');
+insert into sys_role_menu values ('100', '3402');
+insert into sys_role_menu values ('100', '3403');
+
+-- 社长(role_id=101) - 不含分类管理、不含统计
+insert into sys_role_menu values ('101', '3100');
+insert into sys_role_menu values ('101', '3101');
+insert into sys_role_menu values ('101', '3103');
+insert into sys_role_menu values ('101', '3200');
+insert into sys_role_menu values ('101', '3201');
+insert into sys_role_menu values ('101', '3202');
+insert into sys_role_menu values ('101', '3203');
+insert into sys_role_menu values ('101', '3300');
+insert into sys_role_menu values ('101', '3301');
+insert into sys_role_menu values ('101', '3302');
+insert into sys_role_menu values ('101', '3303');
+
+-- 副社长(role_id=102) - 不含分类管理
+insert into sys_role_menu values ('102', '3100');
+insert into sys_role_menu values ('102', '3101');
+insert into sys_role_menu values ('102', '3103');
+insert into sys_role_menu values ('102', '3200');
+insert into sys_role_menu values ('102', '3201');
+insert into sys_role_menu values ('102', '3202');
+insert into sys_role_menu values ('102', '3300');
+insert into sys_role_menu values ('102', '3301');
+insert into sys_role_menu values ('102', '3302');
+insert into sys_role_menu values ('102', '3303');
+
 
 -- ----------------------------
 -- 8、角色和部门关联表  角色1-N部门
@@ -643,62 +715,3 @@ insert into sys_notice values('1', '温馨提醒：2018-07-01 若依新版本发
 insert into sys_notice values('2', '维护通知：2018-07-01 若依系统凌晨维护', '1', '维护内容',   '0', 'admin', sysdate(), '', null, '管理员');
 
 
--- ----------------------------
--- 18、代码生成业务表
--- ----------------------------
-drop table if exists gen_table;
-create table gen_table (
-  table_id          bigint(20)      not null auto_increment    comment '编号',
-  table_name        varchar(200)    default ''                 comment '表名称',
-  table_comment     varchar(500)    default ''                 comment '表描述',
-  sub_table_name    varchar(64)     default null               comment '关联子表的表名',
-  sub_table_fk_name varchar(64)     default null               comment '子表关联的外键名',
-  class_name        varchar(100)    default ''                 comment '实体类名称',
-  tpl_category      varchar(200)    default 'crud'             comment '使用的模板（crud单表操作 tree树表操作）',
-  tpl_web_type      varchar(30)     default ''                 comment '前端模板类型（element-ui模版 element-plus模版）',
-  package_name      varchar(100)                               comment '生成包路径',
-  module_name       varchar(30)                                comment '生成模块名',
-  business_name     varchar(30)                                comment '生成业务名',
-  function_name     varchar(50)                                comment '生成功能名',
-  function_author   varchar(50)                                comment '生成功能作者',
-  gen_type          char(1)         default '0'                comment '生成代码方式（0zip压缩包 1自定义路径）',
-  gen_path          varchar(200)    default '/'                comment '生成路径（不填默认项目路径）',
-  options           varchar(1000)                              comment '其它生成选项',
-  create_by         varchar(64)     default ''                 comment '创建者',
-  create_time 	    datetime                                   comment '创建时间',
-  update_by         varchar(64)     default ''                 comment '更新者',
-  update_time       datetime                                   comment '更新时间',
-  remark            varchar(500)    default null               comment '备注',
-  primary key (table_id)
-) engine=innodb auto_increment=1 comment = '代码生成业务表';
-
-
--- ----------------------------
--- 19、代码生成业务表字段
--- ----------------------------
-drop table if exists gen_table_column;
-create table gen_table_column (
-  column_id         bigint(20)      not null auto_increment    comment '编号',
-  table_id          bigint(20)                                 comment '归属表编号',
-  column_name       varchar(200)                               comment '列名称',
-  column_comment    varchar(500)                               comment '列描述',
-  column_type       varchar(100)                               comment '列类型',
-  java_type         varchar(500)                               comment 'JAVA类型',
-  java_field        varchar(200)                               comment 'JAVA字段名',
-  is_pk             char(1)                                    comment '是否主键（1是）',
-  is_increment      char(1)                                    comment '是否自增（1是）',
-  is_required       char(1)                                    comment '是否必填（1是）',
-  is_insert         char(1)                                    comment '是否为插入字段（1是）',
-  is_edit           char(1)                                    comment '是否编辑字段（1是）',
-  is_list           char(1)                                    comment '是否列表字段（1是）',
-  is_query          char(1)                                    comment '是否查询字段（1是）',
-  query_type        varchar(200)    default 'EQ'               comment '查询方式（等于、不等于、大于、小于、范围）',
-  html_type         varchar(200)                               comment '显示类型（文本框、文本域、下拉框、复选框、单选框、日期控件）',
-  dict_type         varchar(200)    default ''                 comment '字典类型',
-  sort              int                                        comment '排序',
-  create_by         varchar(64)     default ''                 comment '创建者',
-  create_time 	    datetime                                   comment '创建时间',
-  update_by         varchar(64)     default ''                 comment '更新者',
-  update_time       datetime                                   comment '更新时间',
-  primary key (column_id)
-) engine=innodb auto_increment=1 comment = '代码生成业务表字段';

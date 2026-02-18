@@ -140,13 +140,16 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      * 获取申请统计数据
      */
     @Override
-    public java.util.Map<String, Object> getStatData() {
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
         java.util.Map<String, Object> map = new java.util.HashMap<>();
 
-        // 今日数据
-        map.put("statusStat", clubApplicationMapper.selectStatusStat());
+        // 按日期范围统计（如未传参则查全部）
+        map.put("statusStat", clubApplicationMapper.selectStatusStatByDateRange(beginTime, endTime));
 
-        // 昨日数据（用于计算环比）
+        // 今日数据（用于计算环比差值）
+        map.put("todayStats", clubApplicationMapper.selectTodayStats());
+
+        // 昨日数据（用于计算环比差值）
         map.put("yesterdayStatusStat", clubApplicationMapper.selectYesterdayStatusStat());
 
         // 趋势统计（含社团信息）

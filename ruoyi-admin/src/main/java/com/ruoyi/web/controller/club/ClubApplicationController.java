@@ -92,7 +92,8 @@ public class ClubApplicationController extends BaseController {
      */
     @PreAuthorize("@ss.hasPermi('club:application:list')")
     @GetMapping("/stat")
-    public AjaxResult stat() {
-        return success(clubApplicationService.getStatData());
+    public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {
+        return success(clubApplicationService.getStatData(beginTime, endTime));
     }
 }

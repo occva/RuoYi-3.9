@@ -228,4 +228,25 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         GROUP BY ca.review_status, c.club_name
         ORDER BY status, c.club_name
     </select>
+
+    <select id="selectStatusStatByDateRange" resultType="java.util.Map">
+        SELECT review_status as status, count(*) as count 
+        FROM club_application 
+        WHERE del_flag = '0'
+        <if test="beginTime != null and beginTime != ''">
+            AND DATE(application_time) &gt;= DATE(#{beginTime})
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND DATE(application_time) &lt;= DATE(#{endTime})
+        </if>
+        GROUP BY review_status
+    </select>
+
+    <select id="selectTodayStats" resultType="java.util.Map">
+        SELECT
+            (SELECT count(*) FROM club_application WHERE del_flag='0' AND DATE(application_time) = CURDATE()) as totalNew,
+            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='0' AND DATE(application_time) = CURDATE()) as pendingNew,
+            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='1' AND DATE(review_time) = CURDATE()) as approvedNew,
+            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='2' AND DATE(review_time) = CURDATE()) as rejectedNew
+    </select>
 </mapper>

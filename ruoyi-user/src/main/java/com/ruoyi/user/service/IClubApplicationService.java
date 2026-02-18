@@ -68,5 +68,5 @@ public interface IClubApplicationService {
     /**
      * 获取申请统计数据
      */
-    public java.util.Map<String, Object> getStatData();
+    public java.util.Map<String, Object> getStatData(String beginTime, String endTime);
 }

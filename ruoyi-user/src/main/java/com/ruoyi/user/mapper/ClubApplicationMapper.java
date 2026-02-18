@@ -86,4 +86,16 @@ public interface ClubApplicationMapper {
      * 按社团分组统计状态分布
      */
     public List<java.util.Map<String, Object>> selectStatusStatByClub();
+
+    /**
+     * 按日期范围统计各状态申请数量
+     */
+    public List<java.util.Map<String, Object>> selectStatusStatByDateRange(
+            @org.apache.ibatis.annotations.Param("beginTime") String beginTime,
+            @org.apache.ibatis.annotations.Param("endTime") String endTime);
+
+    /**
+     * 统计今日各状态申请数量
+     */
+    public java.util.Map<String, Object> selectTodayStats();
 }

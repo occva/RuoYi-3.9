@@ -16,6 +16,7 @@ import com.ruoyi.common.constant.CacheConstants;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.redis.RedisCache;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.sign.Base64;
 import com.ruoyi.common.utils.uuid.IdUtils;
 import com.ruoyi.system.service.ISysConfigService;
@@ -62,17 +63,22 @@ public class CaptchaController
 
         // 生成验证码
         String captchaType = RuoYiConfig.getCaptchaType();
-        if ("math".equals(captchaType))
+        if ("math".equalsIgnoreCase(captchaType))
         {
             String capText = captchaProducerMath.createText();
             capStr = capText.substring(0, capText.lastIndexOf("@"));
             code = capText.substring(capText.lastIndexOf("@") + 1);
             image = captchaProducerMath.createImage(capStr);
         }
-        else if ("char".equals(captchaType))
+        else
         {
             capStr = code = captchaProducer.createText();
             image = captchaProducer.createImage(capStr);
+        }
+
+        if (StringUtils.isNull(image) || StringUtils.isEmpty(code))
+        {
+            return AjaxResult.error("验证码生成失败，请检查captchaType配置");
         }
 
         redisCache.setCacheObject(verifyKey, code, Constants.CAPTCHA_EXPIRATION, TimeUnit.MINUTES);
@@ -82,7 +88,7 @@ public class CaptchaController
         {
             ImageIO.write(image, "jpg", os);
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             return AjaxResult.error(e.getMessage());
         }

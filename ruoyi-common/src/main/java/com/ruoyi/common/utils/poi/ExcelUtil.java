@@ -1024,6 +1024,21 @@ public class ExcelUtil<T> {
     }
 
     /**
+     * 使用自定义格式，同时避免样式污染
+     * 
+     * @param cellStyle 从此样式复制
+     * @param format 格式匹配的字符串
+     * @return 格式化后CellStyle对象
+     */
+    private CellStyle createCellStyle(CellStyle cellStyle, String format)
+    {
+        CellStyle style = wb.createCellStyle();
+        style.cloneStyleFrom(cellStyle);
+        style.setDataFormat(wb.getCreationHelper().createDataFormat().getFormat(format));
+        return style;
+    }
+
+    /**
      * 设置 POI XSSFSheet 单元格提示或选择框
      * 
      * @param sheet         表单

@@ -16,8 +16,16 @@ public class ClubNoticeServiceImpl implements IClubNoticeService {
     @Autowired
     private ClubNoticeMapper clubNoticeMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     @Override
     public List<ClubNotice> selectClubNoticeList(ClubNotice notice) {
+        // 数据隔离：社长/副社长只能看自己管理社团的公告
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            notice.getParams().put("clubIds", managedClubIds);
+        }
         return clubNoticeMapper.selectClubNoticeList(notice);
     }
 

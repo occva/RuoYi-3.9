@@ -18,6 +18,9 @@ public class ClubAchievementServiceImpl implements IClubAchievementService {
     @Autowired
     private ClubAchievementMapper clubAchievementMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     /**
      * 查询社团荣誉/成就
      * 
@@ -37,6 +40,11 @@ public class ClubAchievementServiceImpl implements IClubAchievementService {
      */
     @Override
     public List<ClubAchievement> selectClubAchievementList(ClubAchievement clubAchievement) {
+        // 数据隔离：社长/副社长只能看自己管理社团的荣誉
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            clubAchievement.getParams().put("clubIds", managedClubIds);
+        }
         return clubAchievementMapper.selectClubAchievementList(clubAchievement);
     }
 

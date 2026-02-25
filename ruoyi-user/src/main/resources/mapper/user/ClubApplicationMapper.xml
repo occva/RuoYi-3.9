@@ -54,6 +54,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="nickName != null  and nickName != ''"> and ca.nick_name like concat('%', #{nickName}, '%')</if>
             <if test="realName != null  and realName != ''"> and ca.real_name like concat('%', #{realName}, '%')</if>
             <if test="status != null  and status != ''"> and ca.review_status = #{status}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                and ca.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
         order by ca.application_time desc
     </select>
@@ -175,7 +179,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectStatusStat" resultType="java.util.Map">
         SELECT review_status as status, count(*) as count 
         FROM club_application 
-        WHERE del_flag = '0' 
+        WHERE del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY review_status
     </select>
 
@@ -184,6 +192,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM club_application 
         WHERE del_flag = '0' 
           AND application_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY day
         ORDER BY day ASC
     </select>
@@ -192,7 +204,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT c.club_name as clubName, c.club_id as clubId, count(*) as count 
         FROM club_application ca
         LEFT JOIN club c ON ca.club_id = c.club_id
-        WHERE ca.del_flag = '0' 
+        WHERE ca.del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND ca.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY c.club_name, c.club_id 
         ORDER BY count DESC 
         LIMIT 10
@@ -203,6 +219,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM club_application 
         WHERE del_flag = '0' 
           AND DATE(application_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY review_status
     </select>
 
@@ -214,6 +234,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         LEFT JOIN club c ON ca.club_id = c.club_id
         WHERE ca.del_flag = '0' 
           AND ca.application_time >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND ca.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY day, c.club_name
         ORDER BY day ASC, c.club_name ASC
     </select>
@@ -224,7 +248,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                count(*) as count 
         FROM club_application ca
         LEFT JOIN club c ON ca.club_id = c.club_id
-        WHERE ca.del_flag = '0' 
+        WHERE ca.del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND ca.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY ca.review_status, c.club_name
         ORDER BY status, c.club_name
     </select>
@@ -239,14 +267,24 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="endTime != null and endTime != ''">
             AND DATE(application_time) &lt;= DATE(#{endTime})
         </if>
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY review_status
     </select>
 
     <select id="selectTodayStats" resultType="java.util.Map">
         SELECT
-            (SELECT count(*) FROM club_application WHERE del_flag='0' AND DATE(application_time) = CURDATE()) as totalNew,
-            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='0' AND DATE(application_time) = CURDATE()) as pendingNew,
-            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='1' AND DATE(review_time) = CURDATE()) as approvedNew,
-            (SELECT count(*) FROM club_application WHERE del_flag='0' AND review_status='2' AND DATE(review_time) = CURDATE()) as rejectedNew
+            count(CASE WHEN DATE(application_time) = CURDATE() THEN 1 END) as totalNew,
+            count(CASE WHEN review_status='0' AND DATE(application_time) = CURDATE() THEN 1 END) as pendingNew,
+            count(CASE WHEN review_status='1' AND DATE(review_time) = CURDATE() THEN 1 END) as approvedNew,
+            count(CASE WHEN review_status='2' AND DATE(review_time) = CURDATE() THEN 1 END) as rejectedNew
+        FROM club_application
+        WHERE del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
     </select>
 </mapper>

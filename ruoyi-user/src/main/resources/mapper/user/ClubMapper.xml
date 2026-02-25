@@ -61,6 +61,10 @@
             <if test="presidentName != null and presidentName != ''">AND c.president_name like concat('%', #{presidentName}, '%')</if>
             <if test="params.beginTime != null and params.beginTime != ''">AND c.create_time &gt;= #{params.beginTime}</if>
             <if test="params.endTime != null and params.endTime != ''">AND c.create_time &lt;= #{params.endTime}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                AND c.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
         order by c.sort_order, c.create_time desc
     </select>

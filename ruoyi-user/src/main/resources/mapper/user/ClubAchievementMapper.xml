@@ -39,6 +39,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="achievementType != null  and achievementType != ''"> and a.achievement_type = #{achievementType}</if>
             <if test="level != null  and level != ''"> and a.level = #{level}</if>
             <if test="status != null  and status != ''"> and a.status = #{status}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                and a.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
         order by a.sort_order asc, a.achieve_date desc
     </select>

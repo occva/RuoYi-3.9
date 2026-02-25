@@ -38,6 +38,10 @@
             <if test="noticeTitle != null and noticeTitle != ''">AND n.notice_title like concat('%', #{noticeTitle}, '%')</if>
             <if test="status != null and status != ''">AND n.status = #{status}</if>
             <if test="noticeType != null and noticeType != ''">AND n.notice_type = #{noticeType}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                AND n.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
         order by n.is_top desc, n.publish_time desc
     </select>

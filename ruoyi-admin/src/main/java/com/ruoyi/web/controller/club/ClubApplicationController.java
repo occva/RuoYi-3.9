@@ -27,7 +27,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * @author ruoyi
  */
 @RestController
-@RequestMapping("/club/application")
+@RequestMapping("/system/application")
 public class ClubApplicationController extends BaseController {
     @Autowired
     private IClubApplicationService clubApplicationService;

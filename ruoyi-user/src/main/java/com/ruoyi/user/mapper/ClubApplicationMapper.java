@@ -60,42 +60,50 @@ public interface ClubApplicationMapper {
     /**
      * 统计各状态申请数量
      */
-    public List<java.util.Map<String, Object>> selectStatusStat();
+    public List<java.util.Map<String, Object>> selectStatusStat(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 统计近30天申请趋势
      */
-    public List<java.util.Map<String, Object>> selectTrendStat();
+    public List<java.util.Map<String, Object>> selectTrendStat(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 统计社团申请排名
      */
-    public List<java.util.Map<String, Object>> selectClubRankingStat();
+    public List<java.util.Map<String, Object>> selectClubRankingStat(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 统计昨日各状态申请数量
      */
-    public List<java.util.Map<String, Object>> selectYesterdayStatusStat();
+    public List<java.util.Map<String, Object>> selectYesterdayStatusStat(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 按社团分组统计趋势数据
      */
-    public List<java.util.Map<String, Object>> selectTrendStatByClub();
+    public List<java.util.Map<String, Object>> selectTrendStatByClub(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 按社团分组统计状态分布
      */
-    public List<java.util.Map<String, Object>> selectStatusStatByClub();
+    public List<java.util.Map<String, Object>> selectStatusStatByClub(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 按日期范围统计各状态申请数量
      */
     public List<java.util.Map<String, Object>> selectStatusStatByDateRange(
             @org.apache.ibatis.annotations.Param("beginTime") String beginTime,
-            @org.apache.ibatis.annotations.Param("endTime") String endTime);
+            @org.apache.ibatis.annotations.Param("endTime") String endTime,
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 
     /**
      * 统计今日各状态申请数量
      */
-    public java.util.Map<String, Object> selectTodayStats();
+    public java.util.Map<String, Object> selectTodayStats(
+            @org.apache.ibatis.annotations.Param("clubIds") java.util.List<Long> clubIds);
 }

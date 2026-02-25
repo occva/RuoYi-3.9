@@ -49,7 +49,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 </choose>
             </if>
             <if test="status != null  and status != ''"> and m.status = #{status}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                and m.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
+    </select>
+    
+    <!-- 查询用户作为社长/副社长管理的所有社团ID -->
+    <select id="selectManagedClubIdsByUserId" resultType="java.lang.Long">
+        select club_id from club_member
+        where user_id = #{userId}
+          and role_type in ('1', '2')
+          and del_flag = '0'
+          and status = '0'
     </select>
     
     <select id="selectClubMemberById" parameterType="Long" resultMap="ClubMemberResult">
@@ -142,15 +155,25 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="endTime != null and endTime != ''">
             AND DATE(join_date) &lt;= DATE(#{endTime})
         </if>
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY status
     </select>
 
     <!-- 成员统计：今日数据 -->
     <select id="selectMemberTodayStats" resultType="java.util.Map">
         SELECT
-            (SELECT count(*) FROM club_member WHERE del_flag='0' AND DATE(join_date) = CURDATE()) as totalNew,
-            (SELECT count(*) FROM club_member WHERE del_flag='0' AND status='0' AND DATE(join_date) = CURDATE()) as activeNew,
-            (SELECT count(*) FROM club_member WHERE del_flag='0' AND status='1' AND DATE(join_date) = CURDATE()) as exitedNew
+            count(CASE WHEN DATE(join_date) = CURDATE() THEN 1 END) as totalNew,
+            count(CASE WHEN status='0' AND DATE(join_date) = CURDATE() THEN 1 END) as activeNew,
+            count(CASE WHEN status='1' AND DATE(join_date) = CURDATE() THEN 1 END) as exitedNew
+        FROM club_member
+        WHERE del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
     </select>
 
     <!-- 成员统计：入社趋势（近30天） -->
@@ -159,6 +182,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM club_member
         WHERE del_flag = '0'
           AND join_date &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY day
         ORDER BY day ASC
     </select>
@@ -168,6 +195,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT role_type as roleType, count(*) as count
         FROM club_member
         WHERE del_flag = '0' AND status = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY role_type
     </select>
 
@@ -177,6 +208,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         FROM club_member m
         LEFT JOIN club c ON m.club_id = c.club_id
         WHERE m.del_flag = '0' AND m.status = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND m.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY c.club_name, c.club_id
         ORDER BY count DESC
         LIMIT 10

@@ -263,9 +263,9 @@ insert into sys_menu values('3102', '社团分类', '3100', '2', 'category',    
 insert into sys_menu values('3103', '荣誉管理', '3100', '3', 'achievement',  'club/achievement/index',    '', '', 1, 0, 'C', '0', '0', 'system:achievement:list',       'star',    'admin', sysdate(), '', null, '社团荣誉管理');
 -- 社团运营
 insert into sys_menu values('3200', '社团运营', '0', '2', 'club-operation',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'guide',   'admin', sysdate(), '', null, '社团运营管理目录');
-insert into sys_menu values('3201', '入社申请', '3200', '1', 'application',  'club/application/index',    '', '', 1, 0, 'C', '0', '0', 'system:application:list',       'form',    'admin', sysdate(), '', null, '入社申请审核');
-insert into sys_menu values('3202', '成员管理', '3200', '2', 'member',       'club/member/index',         '', '', 1, 0, 'C', '0', '0', 'system:member:list',            'user',    'admin', sysdate(), '', null, '社团成员管理');
-insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-stat', 'club/application/stat', '', '', 1, 0, 'C', '0', '0', 'system:application:statistics', 'chart', 'admin', sysdate(), '', null, '申请数据统计');
+insert into sys_menu values('3201', '入社申请', '3200', '1', 'application',  'club/application/index',    '', '', 1, 0, 'C', '0', '0', 'club:application:list',         'form',    'admin', sysdate(), '', null, '入社申请审核');
+insert into sys_menu values('3202', '成员管理', '3200', '2', 'member',       'club/member/index',         '', '', 1, 0, 'C', '0', '0', 'club:member:list',              'user',    'admin', sysdate(), '', null, '社团成员管理');
+insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-stat', 'club/application/stat', '', '', 1, 0, 'C', '0', '0', 'club:application:list',         'chart', 'admin', sysdate(), '', null, '申请数据统计');
 -- 社团宣传
 insert into sys_menu values('3300', '社团宣传', '0', '3', 'club-promotion',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'message', 'admin', sysdate(), '', null, '社团宣传管理目录');
 insert into sys_menu values('3301', '活动管理', '3300', '1', 'activity',     'club/activity/index',       '', '', 1, 0, 'C', '0', '0', 'system:activity:list',          'date',    'admin', sysdate(), '', null, '社团活动管理');
@@ -715,3 +715,29 @@ insert into sys_notice values('1', '温馨提醒：2018-07-01 若依新版本发
 insert into sys_notice values('2', '维护通知：2018-07-01 若依系统凌晨维护', '1', '维护内容',   '0', 'admin', sysdate(), '', null, '管理员');
 
 
+-- ============================================================
+-- 社团模块细粒度按钮权限（补充）
+-- 入社申请按钮 (parent: 3201)
+-- ============================================================
+insert into sys_menu values('3211', '申请查询', '3201', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:query',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3212', '申请审核', '3201', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:review',     '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3213', '申请删除', '3201', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:remove',     '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3214', '申请导出', '3201', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:export',     '#', 'admin', sysdate(), '', null, '');
+-- 成员管理按钮 (parent: 3202)
+insert into sys_menu values('3221', '成员查询', '3202', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:query',             '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3222', '成员新增', '3202', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:add',               '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3223', '成员修改', '3202', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:edit',              '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3224', '成员删除', '3202', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:remove',            '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3225', '成员导出', '3202', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:export',            '#', 'admin', sysdate(), '', null, '');
+
+-- 管理员(1) 和 社团管理员(100) 拥有所有新增按钮权限
+insert into sys_role_menu values ('1', '3211'); insert into sys_role_menu values ('1', '3212'); insert into sys_role_menu values ('1', '3213'); insert into sys_role_menu values ('1', '3214');
+insert into sys_role_menu values ('1', '3221'); insert into sys_role_menu values ('1', '3222'); insert into sys_role_menu values ('1', '3223'); insert into sys_role_menu values ('1', '3224'); insert into sys_role_menu values ('1', '3225');
+insert into sys_role_menu values ('100', '3211'); insert into sys_role_menu values ('100', '3212'); insert into sys_role_menu values ('100', '3213'); insert into sys_role_menu values ('100', '3214');
+insert into sys_role_menu values ('100', '3221'); insert into sys_role_menu values ('100', '3222'); insert into sys_role_menu values ('100', '3223'); insert into sys_role_menu values ('100', '3224'); insert into sys_role_menu values ('100', '3225');
+-- 社长(101) - 有审核/删除申请、修改/删除成员权限
+insert into sys_role_menu values ('101', '3211'); insert into sys_role_menu values ('101', '3212'); insert into sys_role_menu values ('101', '3213');
+insert into sys_role_menu values ('101', '3221'); insert into sys_role_menu values ('101', '3223'); insert into sys_role_menu values ('101', '3224');
+-- 副社长(102) - 有审核申请、查看成员权限（不含删除成员）
+insert into sys_role_menu values ('102', '3211'); insert into sys_role_menu values ('102', '3212');
+insert into sys_role_menu values ('102', '3221');

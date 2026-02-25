@@ -17,8 +17,16 @@ public class ClubServiceImpl implements IClubService {
     @Autowired
     private ClubMapper clubMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     @Override
     public List<Club> selectClubList(Club club) {
+        // 数据隔离：社长/副社长只能看自己管理的社团
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            club.getParams().put("clubIds", managedClubIds);
+        }
         return clubMapper.selectClubList(club);
     }
 

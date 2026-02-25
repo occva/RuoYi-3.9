@@ -25,6 +25,9 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
     @Autowired
     private ClubMemberMapper clubMemberMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     /**
      * 查询入社申请
      * 
@@ -44,6 +47,11 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      */
     @Override
     public List<ClubApplication> selectClubApplicationList(ClubApplication clubApplication) {
+        // 数据隔离：社长/副社长只能看自己管理社团的申请
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            clubApplication.getParams().put("clubIds", managedClubIds);
+        }
         return clubApplicationMapper.selectClubApplicationList(clubApplication);
     }
 
@@ -137,30 +145,33 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
     }
 
     /**
-     * 获取申请统计数据
+     * 获取申请统计数据（支持社长数据范围过滤）
      */
     @Override
     public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
         java.util.Map<String, Object> map = new java.util.HashMap<>();
 
+        // 数据隔离：社长只能看自己管理社团的申请统计
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+
         // 按日期范围统计（如未传参则查全部）
-        map.put("statusStat", clubApplicationMapper.selectStatusStatByDateRange(beginTime, endTime));
+        map.put("statusStat", clubApplicationMapper.selectStatusStatByDateRange(beginTime, endTime, managedClubIds));
 
         // 今日数据（用于计算环比差值）
-        map.put("todayStats", clubApplicationMapper.selectTodayStats());
+        map.put("todayStats", clubApplicationMapper.selectTodayStats(managedClubIds));
 
         // 昨日数据（用于计算环比差值）
-        map.put("yesterdayStatusStat", clubApplicationMapper.selectYesterdayStatusStat());
+        map.put("yesterdayStatusStat", clubApplicationMapper.selectYesterdayStatusStat(managedClubIds));
 
         // 趋势统计（含社团信息）
-        map.put("trendStat", clubApplicationMapper.selectTrendStat());
-        map.put("trendStatByClub", clubApplicationMapper.selectTrendStatByClub());
+        map.put("trendStat", clubApplicationMapper.selectTrendStat(managedClubIds));
+        map.put("trendStatByClub", clubApplicationMapper.selectTrendStatByClub(managedClubIds));
 
         // 状态分布（含社团信息）
-        map.put("statusStatByClub", clubApplicationMapper.selectStatusStatByClub());
+        map.put("statusStatByClub", clubApplicationMapper.selectStatusStatByClub(managedClubIds));
 
         // 社团排名
-        map.put("clubRankingStat", clubApplicationMapper.selectClubRankingStat());
+        map.put("clubRankingStat", clubApplicationMapper.selectClubRankingStat(managedClubIds));
 
         return map;
     }

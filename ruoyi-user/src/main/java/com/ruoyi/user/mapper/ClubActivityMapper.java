@@ -29,17 +29,18 @@ public interface ClubActivityMapper {
 
     /** 活动统计 - 按状态统计 */
     List<Map<String, Object>> selectActivityStatusStat(@Param("beginTime") String beginTime,
-            @Param("endTime") String endTime);
+            @Param("endTime") String endTime,
+            @Param("clubIds") List<Long> clubIds);
 
     /** 活动统计 - 今日数据 */
-    Map<String, Object> selectActivityTodayStats();
+    Map<String, Object> selectActivityTodayStats(@Param("clubIds") List<Long> clubIds);
 
     /** 活动统计 - 创建趋势 */
-    List<Map<String, Object>> selectActivityTrendStat();
+    List<Map<String, Object>> selectActivityTrendStat(@Param("clubIds") List<Long> clubIds);
 
     /** 活动统计 - 类型分布 */
-    List<Map<String, Object>> selectActivityTypeStat();
+    List<Map<String, Object>> selectActivityTypeStat(@Param("clubIds") List<Long> clubIds);
 
     /** 活动统计 - 各社团活动排名 */
-    List<Map<String, Object>> selectActivityClubRanking();
+    List<Map<String, Object>> selectActivityClubRanking(@Param("clubIds") List<Long> clubIds);
 }

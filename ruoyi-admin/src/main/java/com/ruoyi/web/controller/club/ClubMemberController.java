@@ -27,7 +27,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * @author ruoyi
  */
 @RestController
-@RequestMapping("/club/member")
+@RequestMapping("/system/member")
 public class ClubMemberController extends BaseController {
     @Autowired
     private IClubMemberService clubMemberService;
@@ -97,7 +97,7 @@ public class ClubMemberController extends BaseController {
     /**
      * 获取成员统计数据
      */
-    @PreAuthorize("@ss.hasPermi('club:member:list')")
+    @PreAuthorize("@ss.hasAnyPermi('system:statistics:member,club:member:list')")
     @GetMapping("/stat")
     public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
             @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {

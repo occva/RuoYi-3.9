@@ -33,8 +33,9 @@ public class ClubCategoryController extends BaseController {
 
     /**
      * 获取分类列表
+     * 社长/副社长拥有 system:club:list 权限，需要读取分类用于社团列表筛选和回显
      */
-    @PreAuthorize("@ss.hasPermi('system:category:list')")
+    @PreAuthorize("@ss.hasAnyPermi('system:category:list,system:club:list')")
     @GetMapping("/list")
     public AjaxResult list(ClubCategory category) {
         List<ClubCategory> list = clubCategoryService.selectClubCategoryList(category);

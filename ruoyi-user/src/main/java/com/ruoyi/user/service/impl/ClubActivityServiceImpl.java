@@ -16,8 +16,16 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     @Autowired
     private ClubActivityMapper clubActivityMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     @Override
     public List<ClubActivity> selectClubActivityList(ClubActivity activity) {
+        // 数据隔离：社长/副社长只能看自己管理社团的活动
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            activity.getParams().put("clubIds", managedClubIds);
+        }
         return clubActivityMapper.selectClubActivityList(activity);
     }
 
@@ -63,12 +71,14 @@ public class ClubActivityServiceImpl implements IClubActivityService {
 
     @Override
     public java.util.Map<String, Object> getStatData(String beginTime, String endTime) {
+        // 数据隔离：社长/副社长只能看自己管理社团的活动统计
+        java.util.List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
         java.util.Map<String, Object> map = new java.util.HashMap<>();
-        map.put("statusStat", clubActivityMapper.selectActivityStatusStat(beginTime, endTime));
-        map.put("todayStats", clubActivityMapper.selectActivityTodayStats());
-        map.put("trendStat", clubActivityMapper.selectActivityTrendStat());
-        map.put("typeStat", clubActivityMapper.selectActivityTypeStat());
-        map.put("clubRanking", clubActivityMapper.selectActivityClubRanking());
+        map.put("statusStat", clubActivityMapper.selectActivityStatusStat(beginTime, endTime, managedClubIds));
+        map.put("todayStats", clubActivityMapper.selectActivityTodayStats(managedClubIds));
+        map.put("trendStat", clubActivityMapper.selectActivityTrendStat(managedClubIds));
+        map.put("typeStat", clubActivityMapper.selectActivityTypeStat(managedClubIds));
+        map.put("clubRanking", clubActivityMapper.selectActivityClubRanking(managedClubIds));
         return map;
     }
 }

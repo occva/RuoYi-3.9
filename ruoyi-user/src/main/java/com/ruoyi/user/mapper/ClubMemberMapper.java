@@ -23,19 +23,26 @@ public interface ClubMemberMapper {
 
     public int deleteClubMemberByIds(Long[] memberIds);
 
+    /**
+     * 查询用户作为社长/副社长管理的社团ID列表
+     * role_type: 1=社长, 2=副社长
+     */
+    List<Long> selectManagedClubIdsByUserId(@Param("userId") Long userId);
+
     /** 成员统计 - 按状态统计 */
     List<Map<String, Object>> selectMemberStatusStat(@Param("beginTime") String beginTime,
-            @Param("endTime") String endTime);
+            @Param("endTime") String endTime,
+            @Param("clubIds") List<Long> clubIds);
 
     /** 成员统计 - 今日数据 */
-    Map<String, Object> selectMemberTodayStats();
+    Map<String, Object> selectMemberTodayStats(@Param("clubIds") List<Long> clubIds);
 
     /** 成员统计 - 入社趋势 */
-    List<Map<String, Object>> selectMemberTrendStat();
+    List<Map<String, Object>> selectMemberTrendStat(@Param("clubIds") List<Long> clubIds);
 
     /** 成员统计 - 角色分布 */
-    List<Map<String, Object>> selectMemberRoleStat();
+    List<Map<String, Object>> selectMemberRoleStat(@Param("clubIds") List<Long> clubIds);
 
     /** 成员统计 - 各社团成员排名 */
-    List<Map<String, Object>> selectMemberClubRanking();
+    List<Map<String, Object>> selectMemberClubRanking(@Param("clubIds") List<Long> clubIds);
 }

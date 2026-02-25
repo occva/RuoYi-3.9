@@ -19,7 +19,7 @@ import com.ruoyi.user.domain.ClubFavorite;
 import com.ruoyi.user.service.IClubFavoriteService;
 
 /**
- * 社团信息Controller (用户端 - 只读)
+ * 社团信息Controller（用户端）
  * 
  * @author ruoyi
  */
@@ -241,5 +241,46 @@ public class AppClubController extends BaseController {
         } catch (Exception e) {
             return error("操作失败，请重试");
         }
+    }
+
+    /**
+     * 退出社团（需要登录）
+     */
+    @PostMapping("/quit/{clubId}")
+    public AjaxResult quit(@PathVariable Long clubId) {
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+
+        Long userId = currentUser.getUserId();
+        Club club = clubService.selectClubById(clubId);
+        if (club == null) {
+            return error("社团不存在");
+        }
+
+        // 社长不可直接退出，避免社团失管
+        if (club.getPresidentId() != null && club.getPresidentId().equals(userId)) {
+            return error("您是社长，请先转让社长职位后再退出");
+        }
+
+        ClubMember memberQuery = new ClubMember();
+        memberQuery.setClubId(clubId);
+        memberQuery.setUserId(userId);
+        memberQuery.setStatus("0");
+        memberQuery.setDelFlag("0");
+        List<ClubMember> members = memberService.selectClubMemberList(memberQuery);
+        if (members == null || members.isEmpty()) {
+            return error("您不是该社团有效成员，无法退出");
+        }
+
+        ClubMember member = members.get(0);
+        if ("1".equals(member.getRoleType())) {
+            return error("您是社长，请先转让社长职位后再退出");
+        }
+
+        return toAjax(memberService.deleteClubMemberById(member.getMemberId()));
     }
 }

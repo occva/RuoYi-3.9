@@ -516,3 +516,171 @@ VALUES (1872600000000000000, '编程狂人社', 2, 'ry', '若依', '20230101', '
 INSERT INTO club_favorite (favorite_id, club_id, user_id, create_time)
 VALUES (10004, 1872600000000000001, 1, NOW());
 
+
+-- =====================================================
+-- 13、新社团创建申请表（同步 upgrade_20260227_*）
+-- =====================================================
+drop table if exists club_create_application;
+create table club_create_application (
+  apply_id             bigint(20)      not null auto_increment comment '申请ID',
+  club_name            varchar(100)    not null               comment '目标社团名称',
+  category_id          bigint(20)      not null               comment '社团分类ID',
+  logo_url             varchar(255)    default ''             comment '社团Logo',
+  contact_phone        varchar(20)     default ''             comment '联系电话',
+  description          text                                    comment '社团简介',
+  apply_reason         text                                    comment '申请理由',
+  activity_plan        text                                    comment '活动计划（可选）',
+  core_members         text                                    comment '核心成员规划（可选）',
+  advisor_name         varchar(50)     default null           comment '指导老师姓名（可选）',
+  advisor_contact      varchar(100)    default ''             comment '指导老师联系方式',
+  applicant_user_id    bigint(20)      not null               comment '申请人用户ID',
+  applicant_user_name  varchar(30)     not null               comment '申请人账号',
+  applicant_nick_name  varchar(30)     default ''             comment '申请人昵称',
+  applicant_phone      varchar(20)     default ''             comment '申请人电话',
+  applicant_email      varchar(100)    default ''             comment '申请人邮箱',
+  apply_time           datetime                                 comment '申请时间',
+  review_status        char(1)         default '0'            comment '审核状态（0待审核 1通过 2拒绝）',
+  reviewer_id          bigint(20)                               comment '审核人ID',
+  reviewer_name        varchar(50)     default ''             comment '审核人姓名',
+  review_time          datetime                                 comment '审核时间',
+  review_comment       varchar(500)    default ''             comment '审核意见',
+  approved_club_id     bigint(20)                               comment '通过后社团ID',
+  admin_user_id        bigint(20)                               comment '自动创建管理员ID',
+  admin_user_name      varchar(30)     default ''             comment '自动创建管理员账号',
+  admin_init_password  varchar(100)    default ''             comment '自动创建管理员初始密码',
+  del_flag             char(1)         default '0'            comment '删除标志（0存在 2删除）',
+  create_by            varchar(64)     default ''             comment '创建者',
+  create_time          datetime                                 comment '创建时间',
+  update_by            varchar(64)     default ''             comment '更新者',
+  update_time          datetime                                 comment '更新时间',
+  remark               varchar(500)    default null           comment '备注',
+  primary key (apply_id),
+  key idx_cca_status (review_status),
+  key idx_cca_apply_time (apply_time),
+  key idx_cca_applicant (applicant_user_id),
+  key idx_cca_club_name (club_name)
+) engine=innodb auto_increment=10000 comment = '新建社团申请表';
+
+-- 兼容旧数据：空字符串统一转为 NULL
+update club_create_application
+set advisor_name = null
+where advisor_name = '';
+
+
+-- =====================================================
+-- 14、菜单与权限同步（同步 upgrade_20260225_*、upgrade_20260227_*）
+-- =====================================================
+start transaction;
+
+-- 一级菜单权限码与组件路径同步
+update sys_menu
+set perms = 'club:application:list', component = 'club/application/index', path = 'application'
+where menu_id = 3201;
+
+update sys_menu
+set perms = 'club:member:list', component = 'club/member/index', path = 'member'
+where menu_id = 3202;
+
+update sys_menu
+set perms = 'club:application:list', component = 'club/application/stat', path = 'application-stat'
+where menu_id = 3203;
+
+-- 申请按钮权限
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3211, '申请查询', 3201, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:query', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3211);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3212, '申请审核', 3201, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:review', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3212);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3213, '申请删除', 3201, 3, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:remove', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3213);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3214, '申请导出', 3201, 4, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:export', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3214);
+
+-- 成员按钮权限
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3221, '成员查询', 3202, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:query', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3221);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3222, '成员新增', 3202, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:add', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3222);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3223, '成员修改', 3202, 3, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:edit', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3223);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3224, '成员删除', 3202, 4, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:remove', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3224);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3225, '成员导出', 3202, 5, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:export', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3225);
+
+-- 按钮权限最终值统一
+update sys_menu set perms = 'club:application:query'  where menu_id = 3211;
+update sys_menu set perms = 'club:application:review' where menu_id = 3212;
+update sys_menu set perms = 'club:application:remove' where menu_id = 3213;
+update sys_menu set perms = 'club:application:export' where menu_id = 3214;
+update sys_menu set perms = 'club:member:query'       where menu_id = 3221;
+update sys_menu set perms = 'club:member:add'         where menu_id = 3222;
+update sys_menu set perms = 'club:member:edit'        where menu_id = 3223;
+update sys_menu set perms = 'club:member:remove'      where menu_id = 3224;
+update sys_menu set perms = 'club:member:export'      where menu_id = 3225;
+
+-- 新社团申请菜单与按钮
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3204, '新社团申请', 3100, 4, 'club-apply', 'club/clubApply/index', '', '', 1, 0, 'C', '0', '0', 'club:createApply:list', 'edit-pen', 'admin', now(), '', null, '新社团申请审核'
+where not exists (select 1 from sys_menu where menu_id = 3204);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3231, '新社团申请查询', 3204, 1, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:createApply:query', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3231);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3232, '新社团申请审核', 3204, 2, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:createApply:review', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3232);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3233, '新社团申请删除', 3204, 3, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:createApply:remove', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3233);
+
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query, route_name, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, update_by, update_time, remark)
+select 3234, '新社团申请导出', 3204, 4, '#', '', '', '', 1, 0, 'F', '0', '0', 'club:createApply:export', '#', 'admin', now(), '', null, ''
+where not exists (select 1 from sys_menu where menu_id = 3234);
+
+update sys_menu
+set menu_name = '新社团申请',
+    parent_id = 3100,
+    order_num = 4,
+    perms = 'club:createApply:list',
+    component = 'club/clubApply/index',
+    path = 'club-apply',
+    icon = 'edit-pen',
+    remark = '新社团申请审核',
+    update_by = 'admin',
+    update_time = now()
+where menu_id = 3204;
+
+update sys_menu set menu_name = '新社团申请查询', perms = 'club:createApply:query',  update_by = 'admin', update_time = now() where menu_id = 3231;
+update sys_menu set menu_name = '新社团申请审核', perms = 'club:createApply:review', update_by = 'admin', update_time = now() where menu_id = 3232;
+update sys_menu set menu_name = '新社团申请删除', perms = 'club:createApply:remove', update_by = 'admin', update_time = now() where menu_id = 3233;
+update sys_menu set menu_name = '新社团申请导出', perms = 'club:createApply:export', update_by = 'admin', update_time = now() where menu_id = 3234;
+
+-- 角色授权补齐
+insert ignore into sys_role_menu (role_id, menu_id) values
+(100, 3211), (100, 3212), (100, 3213), (100, 3214), (100, 3221), (100, 3222), (100, 3223), (100, 3224), (100, 3225),
+(101, 3211), (101, 3212), (101, 3213), (101, 3221), (101, 3223), (101, 3224),
+(102, 3211), (102, 3212), (102, 3221),
+(1, 3204), (100, 3204),
+(1, 3231), (1, 3232), (1, 3233), (1, 3234),
+(100, 3231), (100, 3232), (100, 3233), (100, 3234);
+
+commit;
+

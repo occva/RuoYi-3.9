@@ -45,7 +45,7 @@ public class FileUploadUtils
 
     public static String getDefaultBaseDir()
     {
-        return defaultBaseDir;
+        return StringUtils.isNotEmpty(defaultBaseDir) ? defaultBaseDir : RuoYiConfig.getProfile();
     }
 
     /**
@@ -123,6 +123,7 @@ public class FileUploadUtils
             throws FileSizeLimitExceededException, IOException, FileNameLengthLimitExceededException,
             InvalidExtensionException
     {
+        baseDir = StringUtils.isNotEmpty(baseDir) ? baseDir : getDefaultBaseDir();
         int fileNameLength = Objects.requireNonNull(file.getOriginalFilename()).length();
         if (fileNameLength > FileUploadUtils.DEFAULT_FILE_NAME_LENGTH)
         {
@@ -170,9 +171,25 @@ public class FileUploadUtils
 
     public static final String getPathFileName(String uploadDir, String fileName) throws IOException
     {
-        int dirLastIndex = RuoYiConfig.getProfile().length() + 1;
-        String currentDir = StringUtils.substring(uploadDir, dirLastIndex);
-        return Constants.RESOURCE_PREFIX + "/" + currentDir + "/" + fileName;
+        String profile = StringUtils.defaultString(RuoYiConfig.getProfile());
+        String currentDir = uploadDir;
+        if (StringUtils.isNotEmpty(profile) && StringUtils.startsWithIgnoreCase(uploadDir, profile))
+        {
+            int dirLastIndex = profile.length();
+            if (uploadDir.length() > dirLastIndex)
+            {
+                char separator = uploadDir.charAt(dirLastIndex);
+                if (separator == '/' || separator == '\\')
+                {
+                    dirLastIndex++;
+                }
+            }
+            currentDir = StringUtils.substring(uploadDir, dirLastIndex);
+        }
+        currentDir = StringUtils.strip(StringUtils.replace(currentDir, "\\", "/"), "/");
+        return StringUtils.isNotEmpty(currentDir)
+                ? Constants.RESOURCE_PREFIX + "/" + currentDir + "/" + fileName
+                : Constants.RESOURCE_PREFIX + "/" + fileName;
     }
 
     /**

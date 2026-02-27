@@ -1,5 +1,6 @@
 package com.ruoyi.common.config;
 
+import com.ruoyi.common.utils.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "ruoyi")
 public class RuoYiConfig
 {
+    private static final String DEFAULT_PROFILE = System.getProperty("user.dir").replace("\\", "/") + "/uploadPath";
+
     /** 项目名称 */
     private String name;
 
@@ -62,7 +65,7 @@ public class RuoYiConfig
 
     public static String getProfile()
     {
-        return profile;
+        return StringUtils.isNotEmpty(profile) ? profile : DEFAULT_PROFILE;
     }
 
     public void setProfile(String profile)

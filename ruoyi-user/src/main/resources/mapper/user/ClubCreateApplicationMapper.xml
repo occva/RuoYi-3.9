@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.ClubCreateApplicationMapper">
+
+    <resultMap type="com.ruoyi.user.domain.ClubCreateApplication" id="ClubCreateApplicationResult">
+        <result property="applyId" column="apply_id"/>
+        <result property="clubName" column="club_name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="logoUrl" column="logo_url"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="description" column="description"/>
+        <result property="applyReason" column="apply_reason"/>
+        <result property="activityPlan" column="activity_plan"/>
+        <result property="coreMembers" column="core_members"/>
+        <result property="advisorName" column="advisor_name"/>
+        <result property="advisorContact" column="advisor_contact"/>
+        <result property="applicantUserId" column="applicant_user_id"/>
+        <result property="applicantUserName" column="applicant_user_name"/>
+        <result property="applicantNickName" column="applicant_nick_name"/>
+        <result property="applicantPhone" column="applicant_phone"/>
+        <result property="applicantEmail" column="applicant_email"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="status" column="review_status"/>
+        <result property="reviewerId" column="reviewer_id"/>
+        <result property="reviewerName" column="reviewer_name"/>
+        <result property="reviewTime" column="review_time"/>
+        <result property="reviewComment" column="review_comment"/>
+        <result property="approvedClubId" column="approved_club_id"/>
+        <result property="adminUserId" column="admin_user_id"/>
+        <result property="adminUserName" column="admin_user_name"/>
+        <result property="adminInitPassword" column="admin_init_password"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectClubCreateApplicationVo">
+        select cca.apply_id, cca.club_name, cca.category_id, cc.category_name, cca.logo_url, cca.contact_phone,
+               cca.description, cca.apply_reason, cca.activity_plan, cca.core_members, cca.advisor_name,
+               cca.advisor_contact, cca.applicant_user_id, cca.applicant_user_name, cca.applicant_nick_name,
+               cca.applicant_phone, cca.applicant_email, cca.apply_time, cca.review_status, cca.reviewer_id,
+               cca.reviewer_name, cca.review_time, cca.review_comment, cca.approved_club_id, cca.admin_user_id,
+               cca.admin_user_name, cca.admin_init_password, cca.del_flag, cca.create_by, cca.create_time,
+               cca.update_by, cca.update_time, cca.remark
+        from club_create_application cca
+        left join club_category cc on cca.category_id = cc.category_id
+    </sql>
+
+    <select id="selectClubCreateApplicationList" parameterType="com.ruoyi.user.domain.ClubCreateApplication" resultMap="ClubCreateApplicationResult">
+        <include refid="selectClubCreateApplicationVo"/>
+        <where>
+            cca.del_flag = '0'
+            <if test="clubName != null and clubName != ''">and cca.club_name like concat('%', #{clubName}, '%')</if>
+            <if test="categoryId != null">and cca.category_id = #{categoryId}</if>
+            <if test="applicantUserId != null">and cca.applicant_user_id = #{applicantUserId}</if>
+            <if test="applicantUserName != null and applicantUserName != ''">and cca.applicant_user_name like concat('%', #{applicantUserName}, '%')</if>
+            <if test="applicantNickName != null and applicantNickName != ''">and cca.applicant_nick_name like concat('%', #{applicantNickName}, '%')</if>
+            <if test="status != null and status != ''">and cca.review_status = #{status}</if>
+            <if test="params.beginTime != null and params.beginTime != ''">and cca.apply_time &gt;= #{params.beginTime}</if>
+            <if test="params.endTime != null and params.endTime != ''">and cca.apply_time &lt;= #{params.endTime}</if>
+        </where>
+        order by cca.apply_time desc
+    </select>
+
+    <select id="selectClubCreateApplicationById" parameterType="Long" resultMap="ClubCreateApplicationResult">
+        <include refid="selectClubCreateApplicationVo"/>
+        where cca.apply_id = #{applyId}
+    </select>
+
+    <insert id="insertClubCreateApplication" parameterType="com.ruoyi.user.domain.ClubCreateApplication" useGeneratedKeys="true" keyProperty="applyId">
+        insert into club_create_application
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="clubName != null and clubName != ''">club_name,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="logoUrl != null">logo_url,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="description != null">description,</if>
+            <if test="applyReason != null">apply_reason,</if>
+            <if test="activityPlan != null">activity_plan,</if>
+            <if test="coreMembers != null">core_members,</if>
+            <if test="advisorName != null">advisor_name,</if>
+            <if test="advisorContact != null">advisor_contact,</if>
+            <if test="applicantUserId != null">applicant_user_id,</if>
+            <if test="applicantUserName != null">applicant_user_name,</if>
+            <if test="applicantNickName != null">applicant_nick_name,</if>
+            <if test="applicantPhone != null">applicant_phone,</if>
+            <if test="applicantEmail != null">applicant_email,</if>
+            <if test="applyTime != null">apply_time,</if>
+            <if test="status != null">review_status,</if>
+            <if test="reviewerId != null">reviewer_id,</if>
+            <if test="reviewerName != null">reviewer_name,</if>
+            <if test="reviewTime != null">review_time,</if>
+            <if test="reviewComment != null">review_comment,</if>
+            <if test="approvedClubId != null">approved_club_id,</if>
+            <if test="adminUserId != null">admin_user_id,</if>
+            <if test="adminUserName != null">admin_user_name,</if>
+            <if test="adminInitPassword != null">admin_init_password,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="clubName != null and clubName != ''">#{clubName},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="logoUrl != null">#{logoUrl},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="description != null">#{description},</if>
+            <if test="applyReason != null">#{applyReason},</if>
+            <if test="activityPlan != null">#{activityPlan},</if>
+            <if test="coreMembers != null">#{coreMembers},</if>
+            <if test="advisorName != null">#{advisorName},</if>
+            <if test="advisorContact != null">#{advisorContact},</if>
+            <if test="applicantUserId != null">#{applicantUserId},</if>
+            <if test="applicantUserName != null">#{applicantUserName},</if>
+            <if test="applicantNickName != null">#{applicantNickName},</if>
+            <if test="applicantPhone != null">#{applicantPhone},</if>
+            <if test="applicantEmail != null">#{applicantEmail},</if>
+            <if test="applyTime != null">#{applyTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="reviewerId != null">#{reviewerId},</if>
+            <if test="reviewerName != null">#{reviewerName},</if>
+            <if test="reviewTime != null">#{reviewTime},</if>
+            <if test="reviewComment != null">#{reviewComment},</if>
+            <if test="approvedClubId != null">#{approvedClubId},</if>
+            <if test="adminUserId != null">#{adminUserId},</if>
+            <if test="adminUserName != null">#{adminUserName},</if>
+            <if test="adminInitPassword != null">#{adminInitPassword},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateClubCreateApplication" parameterType="com.ruoyi.user.domain.ClubCreateApplication">
+        update club_create_application
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="clubName != null and clubName != ''">club_name = #{clubName},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="logoUrl != null">logo_url = #{logoUrl},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="applyReason != null">apply_reason = #{applyReason},</if>
+            <if test="activityPlan != null">activity_plan = #{activityPlan},</if>
+            <if test="coreMembers != null">core_members = #{coreMembers},</if>
+            <if test="advisorName != null">advisor_name = #{advisorName},</if>
+            <if test="advisorContact != null">advisor_contact = #{advisorContact},</if>
+            <if test="applicantUserId != null">applicant_user_id = #{applicantUserId},</if>
+            <if test="applicantUserName != null">applicant_user_name = #{applicantUserName},</if>
+            <if test="applicantNickName != null">applicant_nick_name = #{applicantNickName},</if>
+            <if test="applicantPhone != null">applicant_phone = #{applicantPhone},</if>
+            <if test="applicantEmail != null">applicant_email = #{applicantEmail},</if>
+            <if test="applyTime != null">apply_time = #{applyTime},</if>
+            <if test="status != null">review_status = #{status},</if>
+            <if test="reviewerId != null">reviewer_id = #{reviewerId},</if>
+            <if test="reviewerName != null">reviewer_name = #{reviewerName},</if>
+            <if test="reviewTime != null">review_time = #{reviewTime},</if>
+            <if test="reviewComment != null">review_comment = #{reviewComment},</if>
+            <if test="approvedClubId != null">approved_club_id = #{approvedClubId},</if>
+            <if test="adminUserId != null">admin_user_id = #{adminUserId},</if>
+            <if test="adminUserName != null">admin_user_name = #{adminUserName},</if>
+            <if test="adminInitPassword != null">admin_init_password = #{adminInitPassword},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where apply_id = #{applyId}
+    </update>
+
+    <delete id="deleteClubCreateApplicationById" parameterType="Long">
+        update club_create_application set del_flag = '2' where apply_id = #{applyId}
+    </delete>
+
+    <delete id="deleteClubCreateApplicationByIds" parameterType="Long">
+        update club_create_application set del_flag = '2' where apply_id in
+        <foreach collection="array" item="applyId" open="(" separator="," close=")">
+            #{applyId}
+        </foreach>
+    </delete>
+</mapper>

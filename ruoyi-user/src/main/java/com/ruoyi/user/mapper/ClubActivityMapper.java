@@ -15,6 +15,8 @@ public interface ClubActivityMapper {
 
     List<ClubActivity> selectActivityByClubId(Long clubId);
 
+    List<ClubActivity> selectMyRegisteredActivities(@Param("userId") Long userId);
+
     int insertClubActivity(ClubActivity activity);
 
     int updateClubActivity(ClubActivity activity);
@@ -22,6 +24,8 @@ public interface ClubActivityMapper {
     int deleteClubActivityById(Long activityId);
 
     int deleteClubActivityByIds(Long[] activityIds);
+
+    int incrementParticipantsIfAvailable(@Param("activityId") Long activityId);
 
     int updateActivityStatusBasedOnTime();
 

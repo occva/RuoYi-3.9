@@ -40,6 +40,11 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     }
 
     @Override
+    public List<ClubActivity> selectMyRegisteredActivities(Long userId) {
+        return clubActivityMapper.selectMyRegisteredActivities(userId);
+    }
+
+    @Override
     public int insertClubActivity(ClubActivity activity) {
         return clubActivityMapper.insertClubActivity(activity);
     }
@@ -57,6 +62,11 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     @Override
     public int deleteClubActivityByIds(Long[] activityIds) {
         return clubActivityMapper.deleteClubActivityByIds(activityIds);
+    }
+
+    @Override
+    public int incrementParticipantsIfAvailable(Long activityId) {
+        return clubActivityMapper.incrementParticipantsIfAvailable(activityId);
     }
 
     @Override

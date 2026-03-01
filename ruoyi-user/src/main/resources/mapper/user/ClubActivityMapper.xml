@@ -63,6 +63,18 @@
         order by a.end_time desc
     </select>
 
+    <select id="selectMyRegisteredActivities" resultMap="ClubActivityResult">
+        <include refid="selectClubActivityVo"/>
+        left join club_activity_registration r on r.activity_id = a.activity_id
+        <where>
+            a.del_flag = '0'
+            and r.del_flag = '0'
+            and r.user_id = #{userId}
+            and r.status != '2'
+        </where>
+        order by r.registration_time desc
+    </select>
+
     <insert id="insertClubActivity" parameterType="com.ruoyi.user.domain.ClubActivity" useGeneratedKeys="true" keyProperty="activityId">
         insert into club_activity
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -150,6 +162,15 @@
             #{activityId}
         </foreach>
     </delete>
+
+    <update id="incrementParticipantsIfAvailable">
+        update club_activity
+        set current_participants = IFNULL(current_participants, 0) + 1
+        where activity_id = #{activityId}
+          and del_flag = '0'
+          and (max_participants is null or max_participants = 0 or IFNULL(current_participants, 0) &lt; max_participants)
+    </update>
+
     <update id="updateActivityStatusBasedOnTime">
         UPDATE club_activity
         SET status = CASE

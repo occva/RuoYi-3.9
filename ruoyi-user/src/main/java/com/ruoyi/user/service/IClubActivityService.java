@@ -13,6 +13,8 @@ public interface IClubActivityService {
 
     List<ClubActivity> selectActivityByClubId(Long clubId);
 
+    List<ClubActivity> selectMyRegisteredActivities(Long userId);
+
     int insertClubActivity(ClubActivity activity);
 
     int updateClubActivity(ClubActivity activity);
@@ -20,6 +22,8 @@ public interface IClubActivityService {
     int deleteClubActivityById(Long activityId);
 
     int deleteClubActivityByIds(Long[] activityIds);
+
+    int incrementParticipantsIfAvailable(Long activityId);
 
     void updateActivityStatusBasedOnTime();
 

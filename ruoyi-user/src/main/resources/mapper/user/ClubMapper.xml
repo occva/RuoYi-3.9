@@ -74,6 +74,13 @@
         where c.club_id = #{clubId} and c.del_flag = '0'
     </select>
 
+    <update id="incrementViewCount">
+        update club
+        set view_count = IFNULL(view_count, 0) + 1
+        where club_id = #{clubId}
+          and del_flag = '0'
+    </update>
+
     <select id="selectPopularClubs" parameterType="int" resultMap="ClubResult">
         <include refid="selectClubVo"/>
         where c.del_flag = '0' and c.status = '0'

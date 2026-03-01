@@ -36,6 +36,11 @@ public class ClubServiceImpl implements IClubService {
     }
 
     @Override
+    public int incrementViewCount(Long clubId) {
+        return clubMapper.incrementViewCount(clubId);
+    }
+
+    @Override
     public List<Club> selectPopularClubs(int limit) {
         return clubMapper.selectPopularClubs(limit);
     }

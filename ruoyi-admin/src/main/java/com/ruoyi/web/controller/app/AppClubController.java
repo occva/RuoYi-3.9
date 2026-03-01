@@ -2,7 +2,10 @@ package com.ruoyi.web.controller.app;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,7 +17,9 @@ import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.user.domain.Club;
 import com.ruoyi.user.domain.ClubApplication;
 import com.ruoyi.user.domain.ClubCreateApplication;
@@ -48,6 +53,9 @@ public class AppClubController extends BaseController {
 
     @Autowired
     private IClubFavoriteService favoriteService;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     /**
      * 社团列表（非分页）
@@ -123,35 +131,71 @@ public class AppClubController extends BaseController {
             return error("社团不存在或不可访问");
         }
 
-        try {
-            SysUser user = getLoginUser().getUser();
-            if (user != null) {
-                Long userId = user.getUserId();
-
-                ClubMember memberQuery = new ClubMember();
-                memberQuery.setClubId(clubId);
-                memberQuery.setUserId(userId);
-                memberQuery.setDelFlag("0");
-                List<ClubMember> members = memberService.selectClubMemberList(memberQuery);
-                club.setMember(members != null && !members.isEmpty());
-
-                if (!club.isMember()) {
-                    ClubApplication appQuery = new ClubApplication();
-                    appQuery.setClubId(clubId);
-                    appQuery.setUserId(userId);
-                    appQuery.setStatus("0");
-                    appQuery.setDelFlag("0");
-                    List<ClubApplication> apps = applicationService.selectClubApplicationList(appQuery);
-                    club.setHasApplied(apps != null && !apps.isEmpty());
-                }
-
-                club.setFavorite(favoriteService.isFavorite(userId, clubId));
+        SysUser currentUser = getCurrentUserIfLogin();
+        boolean viewStatPaused = false;
+        String viewStatTip = null;
+        if (currentUser != null && currentUser.getUserId() != null) {
+            String rateKey = "club:view:rate:" + clubId + ":u:" + currentUser.getUserId();
+            Long requestTimes = redisTemplate.opsForValue().increment(rateKey);
+            if (requestTimes != null && requestTimes == 1L) {
+                redisTemplate.expire(rateKey, 5, TimeUnit.SECONDS);
             }
-        } catch (Exception e) {
-            // 未登录时忽略用户态字段
+            if (requestTimes != null && requestTimes > 5L) {
+                viewStatPaused = true;
+                viewStatTip = "5秒内访问过于频繁，已暂停浏览热度统计";
+            } else {
+                int changed = clubService.incrementViewCount(clubId);
+                if (changed > 0) {
+                    int current = club.getViewCount() == null ? 0 : club.getViewCount();
+                    club.setViewCount(current + 1);
+                }
+            }
         }
 
-        return success(club);
+        if (currentUser != null) {
+            Long userId = currentUser.getUserId();
+
+            ClubMember memberQuery = new ClubMember();
+            memberQuery.setClubId(clubId);
+            memberQuery.setUserId(userId);
+            memberQuery.setDelFlag("0");
+            List<ClubMember> members = memberService.selectClubMemberList(memberQuery);
+            club.setMember(members != null && !members.isEmpty());
+
+            if (!club.isMember()) {
+                ClubApplication appQuery = new ClubApplication();
+                appQuery.setClubId(clubId);
+                appQuery.setUserId(userId);
+                appQuery.setStatus("0");
+                appQuery.setDelFlag("0");
+                List<ClubApplication> apps = applicationService.selectClubApplicationList(appQuery);
+                club.setHasApplied(apps != null && !apps.isEmpty());
+            }
+
+            club.setFavorite(favoriteService.isFavorite(userId, clubId));
+        }
+        AjaxResult ajax = success(club);
+        ajax.put("viewStatPaused", viewStatPaused);
+        if (viewStatPaused) {
+            ajax.put("viewStatTip", viewStatTip);
+        }
+        return ajax;
+    }
+
+    private SysUser getCurrentUserIfLogin() {
+        try {
+            Authentication authentication = SecurityUtils.getAuthentication();
+            if (authentication == null) {
+                return null;
+            }
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof LoginUser) {
+                return ((LoginUser) principal).getUser();
+            }
+        } catch (Exception ignored) {
+            // ignore
+        }
+        return null;
     }
 
     /**

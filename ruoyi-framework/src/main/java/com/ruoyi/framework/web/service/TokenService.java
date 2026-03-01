@@ -52,8 +52,6 @@ public class TokenService
 
     protected static final long MILLIS_MINUTE = 60 * MILLIS_SECOND;
 
-    private static final Long MILLIS_MINUTE_TWENTY = 20 * 60 * 1000L;
-
     @Autowired
     private RedisCache redisCache;
 
@@ -135,12 +133,7 @@ public class TokenService
      */
     public void verifyToken(LoginUser loginUser)
     {
-        long expireTime = loginUser.getExpireTime();
-        long currentTime = System.currentTimeMillis();
-        if (expireTime - currentTime <= MILLIS_MINUTE_TWENTY)
-        {
-            refreshToken(loginUser);
-        }
+        refreshToken(loginUser);
     }
 
     /**

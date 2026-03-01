@@ -18,6 +18,11 @@ public interface IClubService {
     Club selectClubById(Long clubId);
 
     /**
+     * 浏览量 +1
+     */
+    int incrementViewCount(Long clubId);
+
+    /**
      * 查询热门社团
      */
     List<Club> selectPopularClubs(int limit);

@@ -270,7 +270,7 @@ insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-st
 insert into sys_menu values('3300', '社团宣传', '0', '3', 'club-promotion',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'message', 'admin', sysdate(), '', null, '社团宣传管理目录');
 insert into sys_menu values('3301', '活动管理', '3300', '1', 'activity',     'club/activity/index',       '', '', 1, 0, 'C', '0', '0', 'system:activity:list',          'date',    'admin', sysdate(), '', null, '社团活动管理');
 insert into sys_menu values('3302', '公告管理', '3300', '2', 'notice',       'club/notice/index',         '', '', 1, 0, 'C', '0', '0', 'system:notice:list',            'message', 'admin', sysdate(), '', null, '社团公告管理');
-insert into sys_menu values('3303', '相册管理', '3300', '3', 'album',        'club/album/index',          '', '', 1, 0, 'C', '0', '0', 'system:album:list',             'image',   'admin', sysdate(), '', null, '社团相册管理');
+insert into sys_menu values('3303', '报名管理', '3300', '3', 'registration', 'club/registration/index',   '', '', 1, 0, 'C', '0', '0', 'club:registration:list',        'checkbox','admin', sysdate(), '', null, '活动报名管理');
 -- 数据统计
 insert into sys_menu values('3400', '数据统计', '0', '4', 'statistics',      null,                        '', '', 1, 0, 'M', '0', '0', '',                             'chart',   'admin', sysdate(), '', null, '数据统计目录');
 insert into sys_menu values('3401', '社团统计', '3400', '1', 'club-stat',    'statistics/club-stat/index',     '', '', 1, 0, 'C', '0', '0', 'system:statistics:club',        'peoples', 'admin', sysdate(), '', null, '社团数据统计');
@@ -717,27 +717,91 @@ insert into sys_notice values('2', '维护通知：2018-07-01 若依系统凌晨
 
 -- ============================================================
 -- 社团模块细粒度按钮权限（补充）
--- 入社申请按钮 (parent: 3201)
+-- 与前端页面 v-hasPermi / 后端 @PreAuthorize 保持一致
 -- ============================================================
-insert into sys_menu values('3211', '申请查询', '3201', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:query',      '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3212', '申请审核', '3201', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:review',     '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3213', '申请删除', '3201', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:remove',     '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3214', '申请导出', '3201', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:export',     '#', 'admin', sysdate(), '', null, '');
--- 成员管理按钮 (parent: 3202)
-insert into sys_menu values('3221', '成员查询', '3202', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:query',             '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3222', '成员新增', '3202', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:add',               '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3223', '成员修改', '3202', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:edit',              '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3224', '成员删除', '3202', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:remove',            '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3225', '成员导出', '3202', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:export',            '#', 'admin', sysdate(), '', null, '');
 
--- 管理员(1) 和 社团管理员(100) 拥有所有新增按钮权限
+-- 社团列表按钮 (parent: 3101)
+insert into sys_menu values('3111', '社团查询', '3101', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:club:query',            '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3112', '社团新增', '3101', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:club:add',              '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3113', '社团修改', '3101', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:club:edit',             '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3114', '社团删除', '3101', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:club:remove',           '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3115', '社团导出', '3101', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:club:export',           '#', 'admin', sysdate(), '', null, '');
+
+-- 社团分类按钮 (parent: 3102)
+insert into sys_menu values('3121', '分类查询', '3102', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:category:query',        '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3122', '分类新增', '3102', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:category:add',          '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3123', '分类修改', '3102', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:category:edit',         '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3124', '分类删除', '3102', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:category:remove',       '#', 'admin', sysdate(), '', null, '');
+
+-- 荣誉管理按钮 (parent: 3103)
+insert into sys_menu values('3131', '荣誉查询', '3103', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:achievement:query',     '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3132', '荣誉新增', '3103', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:achievement:add',       '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3133', '荣誉修改', '3103', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:achievement:edit',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3134', '荣誉删除', '3103', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:achievement:remove',    '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3135', '荣誉导出', '3103', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:achievement:export',    '#', 'admin', sysdate(), '', null, '');
+
+-- 入社申请按钮 (parent: 3201)
+insert into sys_menu values('3211', '申请查询', '3201', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:query',       '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3212', '申请审核', '3201', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:review',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3213', '申请删除', '3201', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:remove',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3214', '申请导出', '3201', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:application:export',      '#', 'admin', sysdate(), '', null, '');
+
+-- 成员管理按钮 (parent: 3202)
+insert into sys_menu values('3221', '成员查询', '3202', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:query',            '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3222', '成员新增', '3202', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:add',              '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3223', '成员修改', '3202', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:edit',             '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3224', '成员删除', '3202', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:remove',           '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3225', '成员导出', '3202', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:member:export',           '#', 'admin', sysdate(), '', null, '');
+
+-- 活动管理按钮 (parent: 3301)
+insert into sys_menu values('3311', '活动查询', '3301', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:activity:query',        '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3312', '活动新增', '3301', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:activity:add',          '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3313', '活动修改', '3301', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:activity:edit',         '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3314', '活动删除', '3301', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:activity:remove',       '#', 'admin', sysdate(), '', null, '');
+
+-- 公告管理按钮 (parent: 3302)
+insert into sys_menu values('3321', '公告查询', '3302', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:query',          '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3322', '公告新增', '3302', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:add',            '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3323', '公告修改', '3302', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:edit',           '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3324', '公告删除', '3302', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:remove',         '#', 'admin', sysdate(), '', null, '');
+
+-- 报名管理按钮 (parent: 3303)
+insert into sys_menu values('3331', '报名查询', '3303', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:query',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3332', '报名签到', '3303', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:edit',       '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3333', '报名移除', '3303', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:remove',     '#', 'admin', sysdate(), '', null, '');
+
+-- 管理员(1) 与 社团管理员(100): 拥有全部社团模块按钮权限
+insert into sys_role_menu values ('1', '3111'); insert into sys_role_menu values ('1', '3112'); insert into sys_role_menu values ('1', '3113'); insert into sys_role_menu values ('1', '3114'); insert into sys_role_menu values ('1', '3115');
+insert into sys_role_menu values ('1', '3121'); insert into sys_role_menu values ('1', '3122'); insert into sys_role_menu values ('1', '3123'); insert into sys_role_menu values ('1', '3124');
+insert into sys_role_menu values ('1', '3131'); insert into sys_role_menu values ('1', '3132'); insert into sys_role_menu values ('1', '3133'); insert into sys_role_menu values ('1', '3134'); insert into sys_role_menu values ('1', '3135');
 insert into sys_role_menu values ('1', '3211'); insert into sys_role_menu values ('1', '3212'); insert into sys_role_menu values ('1', '3213'); insert into sys_role_menu values ('1', '3214');
 insert into sys_role_menu values ('1', '3221'); insert into sys_role_menu values ('1', '3222'); insert into sys_role_menu values ('1', '3223'); insert into sys_role_menu values ('1', '3224'); insert into sys_role_menu values ('1', '3225');
+insert into sys_role_menu values ('1', '3311'); insert into sys_role_menu values ('1', '3312'); insert into sys_role_menu values ('1', '3313'); insert into sys_role_menu values ('1', '3314');
+insert into sys_role_menu values ('1', '3321'); insert into sys_role_menu values ('1', '3322'); insert into sys_role_menu values ('1', '3323'); insert into sys_role_menu values ('1', '3324');
+insert into sys_role_menu values ('1', '3331'); insert into sys_role_menu values ('1', '3332'); insert into sys_role_menu values ('1', '3333');
+
+insert into sys_role_menu values ('100', '3111'); insert into sys_role_menu values ('100', '3112'); insert into sys_role_menu values ('100', '3113'); insert into sys_role_menu values ('100', '3114'); insert into sys_role_menu values ('100', '3115');
+insert into sys_role_menu values ('100', '3121'); insert into sys_role_menu values ('100', '3122'); insert into sys_role_menu values ('100', '3123'); insert into sys_role_menu values ('100', '3124');
+insert into sys_role_menu values ('100', '3131'); insert into sys_role_menu values ('100', '3132'); insert into sys_role_menu values ('100', '3133'); insert into sys_role_menu values ('100', '3134'); insert into sys_role_menu values ('100', '3135');
 insert into sys_role_menu values ('100', '3211'); insert into sys_role_menu values ('100', '3212'); insert into sys_role_menu values ('100', '3213'); insert into sys_role_menu values ('100', '3214');
 insert into sys_role_menu values ('100', '3221'); insert into sys_role_menu values ('100', '3222'); insert into sys_role_menu values ('100', '3223'); insert into sys_role_menu values ('100', '3224'); insert into sys_role_menu values ('100', '3225');
--- 社长(101) - 有审核/删除申请、修改/删除成员权限
+insert into sys_role_menu values ('100', '3311'); insert into sys_role_menu values ('100', '3312'); insert into sys_role_menu values ('100', '3313'); insert into sys_role_menu values ('100', '3314');
+insert into sys_role_menu values ('100', '3321'); insert into sys_role_menu values ('100', '3322'); insert into sys_role_menu values ('100', '3323'); insert into sys_role_menu values ('100', '3324');
+insert into sys_role_menu values ('100', '3331'); insert into sys_role_menu values ('100', '3332'); insert into sys_role_menu values ('100', '3333');
+
+-- 社长(101)
+insert into sys_role_menu values ('101', '3111'); insert into sys_role_menu values ('101', '3113');
+insert into sys_role_menu values ('101', '3131'); insert into sys_role_menu values ('101', '3132'); insert into sys_role_menu values ('101', '3133'); insert into sys_role_menu values ('101', '3134');
 insert into sys_role_menu values ('101', '3211'); insert into sys_role_menu values ('101', '3212'); insert into sys_role_menu values ('101', '3213');
 insert into sys_role_menu values ('101', '3221'); insert into sys_role_menu values ('101', '3223'); insert into sys_role_menu values ('101', '3224');
--- 副社长(102) - 有审核申请、查看成员权限（不含删除成员）
+insert into sys_role_menu values ('101', '3311'); insert into sys_role_menu values ('101', '3312'); insert into sys_role_menu values ('101', '3313'); insert into sys_role_menu values ('101', '3314');
+insert into sys_role_menu values ('101', '3321'); insert into sys_role_menu values ('101', '3322'); insert into sys_role_menu values ('101', '3323'); insert into sys_role_menu values ('101', '3324');
+insert into sys_role_menu values ('101', '3331'); insert into sys_role_menu values ('101', '3332'); insert into sys_role_menu values ('101', '3333');
+
+-- 副社长(102)
+insert into sys_role_menu values ('102', '3131'); insert into sys_role_menu values ('102', '3132');
 insert into sys_role_menu values ('102', '3211'); insert into sys_role_menu values ('102', '3212');
 insert into sys_role_menu values ('102', '3221');
+insert into sys_role_menu values ('102', '3311'); insert into sys_role_menu values ('102', '3312'); insert into sys_role_menu values ('102', '3313');
+insert into sys_role_menu values ('102', '3321'); insert into sys_role_menu values ('102', '3322');
+insert into sys_role_menu values ('102', '3331'); insert into sys_role_menu values ('102', '3332');

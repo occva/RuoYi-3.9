@@ -70,6 +70,11 @@ public class ClubActivityServiceImpl implements IClubActivityService {
     }
 
     @Override
+    public int decrementParticipants(Long activityId) {
+        return clubActivityMapper.decrementParticipants(activityId);
+    }
+
+    @Override
     public void updateActivityStatusBasedOnTime() {
         clubActivityMapper.updateActivityStatusBasedOnTime();
     }

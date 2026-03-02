@@ -1,7 +1,9 @@
 package com.ruoyi.user.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.user.domain.ClubActivityRegistration;
@@ -18,13 +20,29 @@ public class ClubActivityRegistrationServiceImpl implements IClubActivityRegistr
     @Autowired
     private ClubActivityRegistrationMapper clubActivityRegistrationMapper;
 
+    @Autowired
+    private ClubDataScopeHelper dataScopeHelper;
+
     @Override
     public ClubActivityRegistration selectClubActivityRegistrationById(Long registrationId) {
-        return clubActivityRegistrationMapper.selectClubActivityRegistrationById(registrationId);
+        ClubActivityRegistration record = clubActivityRegistrationMapper.selectClubActivityRegistrationById(registrationId);
+        if (record == null) {
+            return null;
+        }
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null && !managedClubIds.contains(record.getClubId())) {
+            return null;
+        }
+        return record;
     }
 
     @Override
     public List<ClubActivityRegistration> selectClubActivityRegistrationList(ClubActivityRegistration registration) {
+        // 数据隔离：社长/副社长在管理端只能查看自己管理社团的报名记录
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null) {
+            registration.getParams().put("clubIds", managedClubIds);
+        }
         return clubActivityRegistrationMapper.selectClubActivityRegistrationList(registration);
     }
 
@@ -37,17 +55,57 @@ public class ClubActivityRegistrationServiceImpl implements IClubActivityRegistr
 
     @Override
     public int updateClubActivityRegistration(ClubActivityRegistration registration) {
+        ClubActivityRegistration old = clubActivityRegistrationMapper
+                .selectClubActivityRegistrationById(registration.getRegistrationId());
+        if (old == null) {
+            throw new ServiceException("报名记录不存在");
+        }
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null && !managedClubIds.contains(old.getClubId())) {
+            throw new ServiceException("无权操作该报名记录");
+        }
         registration.setUpdateTime(DateUtils.getNowDate());
         return clubActivityRegistrationMapper.updateClubActivityRegistration(registration);
     }
 
     @Override
+    public int cancelActiveRegistration(Long activityId, Long userId) {
+        return clubActivityRegistrationMapper.cancelActiveRegistration(activityId, userId);
+    }
+
+    @Override
     public int deleteClubActivityRegistrationByIds(Long[] registrationIds) {
-        return clubActivityRegistrationMapper.deleteClubActivityRegistrationByIds(registrationIds);
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds == null) {
+            return clubActivityRegistrationMapper.deleteClubActivityRegistrationByIds(registrationIds);
+        }
+
+        List<Long> authorizedIds = new ArrayList<>();
+        for (Long registrationId : registrationIds) {
+            ClubActivityRegistration record = clubActivityRegistrationMapper.selectClubActivityRegistrationById(registrationId);
+            if (record != null && managedClubIds.contains(record.getClubId())) {
+                authorizedIds.add(registrationId);
+            }
+        }
+        if (authorizedIds.isEmpty()) {
+            throw new ServiceException("无可操作的报名记录");
+        }
+        if (authorizedIds.size() != registrationIds.length) {
+            throw new ServiceException("包含无权限操作的报名记录");
+        }
+        return clubActivityRegistrationMapper.deleteClubActivityRegistrationByIds(authorizedIds.toArray(new Long[0]));
     }
 
     @Override
     public int deleteClubActivityRegistrationById(Long registrationId) {
+        ClubActivityRegistration record = clubActivityRegistrationMapper.selectClubActivityRegistrationById(registrationId);
+        if (record == null) {
+            throw new ServiceException("报名记录不存在");
+        }
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds != null && !managedClubIds.contains(record.getClubId())) {
+            throw new ServiceException("无权操作该报名记录");
+        }
         return clubActivityRegistrationMapper.deleteClubActivityRegistrationById(registrationId);
     }
 }

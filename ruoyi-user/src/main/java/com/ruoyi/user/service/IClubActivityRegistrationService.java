@@ -17,6 +17,8 @@ public interface IClubActivityRegistrationService {
 
     public int updateClubActivityRegistration(ClubActivityRegistration registration);
 
+    public int cancelActiveRegistration(Long activityId, Long userId);
+
     public int deleteClubActivityRegistrationByIds(Long[] registrationIds);
 
     public int deleteClubActivityRegistrationById(Long registrationId);

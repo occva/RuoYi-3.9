@@ -2,6 +2,10 @@ package com.ruoyi.web.controller.app;
 
 import java.util.Date;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +61,9 @@ public class AppActivityController extends BaseController {
     @Anonymous
     @GetMapping("/club/{clubId}")
     public AjaxResult listByClub(@PathVariable Long clubId) {
-        return success(clubActivityService.selectActivityByClubId(clubId));
+        List<ClubActivity> activities = clubActivityService.selectActivityByClubId(clubId);
+        attachRegisteredState(activities, clubId, resolveCurrentUserIdSafely());
+        return success(activities);
     }
 
     /**
@@ -79,7 +85,46 @@ public class AppActivityController extends BaseController {
         if (activity == null || "2".equals(activity.getDelFlag())) {
             return error("活动不存在或已删除");
         }
+        Long userId = resolveCurrentUserIdSafely();
+        activity.setHasRegistered(isUserRegistered(activityId, userId));
         return success(activity);
+    }
+
+    /**
+     * 活动报名名单（用户端）
+     */
+    @GetMapping("/{activityId:\\d+}/registrations")
+    public AjaxResult listRegistrations(@PathVariable Long activityId) {
+        ClubActivity activity = clubActivityService.selectClubActivityById(activityId);
+        if (activity == null || "2".equals(activity.getDelFlag())) {
+            return error("活动不存在或已删除");
+        }
+        Long userId = resolveCurrentUserIdSafely();
+        if (userId == null) {
+            return AjaxResult.error(403, "请先登录后查看报名名单")
+                    .put("errorKey", "ACTIVITY_NEED_LOGIN");
+        }
+        if ("0".equals(activity.getIsPublic()) && !isUserActiveClubMember(activity.getClubId(), userId)) {
+            return AjaxResult.error(403, "仅社团成员可查看报名名单")
+                    .put("errorKey", "ACTIVITY_NEED_CLUB_MEMBER");
+        }
+
+        ClubActivityRegistration query = new ClubActivityRegistration();
+        query.setActivityId(activityId);
+        query.setDelFlag("0");
+        query.setStatus("0");
+        List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
+        List<Map<String, Object>> result = records.stream().map(item -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("registrationId", item.getRegistrationId());
+            row.put("userId", item.getUserId());
+            row.put("userName", item.getUserName());
+            row.put("nickName", item.getNickName());
+            row.put("registrationTime", item.getRegistrationTime());
+            row.put("avatar", item.getAvatar());
+            return row;
+        }).collect(Collectors.toList());
+        return success(result);
     }
 
     /**
@@ -186,5 +231,98 @@ public class AppActivityController extends BaseController {
         }
 
         return success("报名成功");
+    }
+
+    /**
+     * 取消报名
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @PostMapping("/cancel/{activityId:\\d+}")
+    public AjaxResult cancelRegistration(@PathVariable Long activityId) {
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+        Long userId = currentUser.getUserId();
+
+        // 检查活动是否已结束，已结束不允许取消
+        ClubActivity activity = clubActivityService.selectClubActivityById(activityId);
+        if (activity != null && ("2".equals(activity.getStatus()) || "3".equals(activity.getStatus()))) {
+            return error("活动已结束或取消，无法撤销报名");
+        }
+
+        int result = registrationService.cancelActiveRegistration(activityId, userId);
+        if (result <= 0) {
+            return error("您尚未报名该活动");
+        }
+
+        // 减少参与人数
+        int updated = clubActivityService.decrementParticipants(activityId);
+        if (updated <= 0) {
+            throw new ServiceException("取消报名失败，请稍后重试");
+        }
+
+        return success("已取消报名");
+    }
+
+    private Long resolveCurrentUserIdSafely() {
+        try {
+            return getUserId();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private boolean isUserRegistered(Long activityId, Long userId) {
+        if (activityId == null || userId == null) {
+            return false;
+        }
+        ClubActivityRegistration query = new ClubActivityRegistration();
+        query.setActivityId(activityId);
+        query.setUserId(userId);
+        query.setDelFlag("0");
+        List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
+        return records != null && records.stream().anyMatch(item -> !"2".equals(item.getStatus()));
+    }
+
+    private boolean isUserActiveClubMember(Long clubId, Long userId) {
+        if (clubId == null || userId == null) {
+            return false;
+        }
+        ClubMember memberQuery = new ClubMember();
+        memberQuery.setClubId(clubId);
+        memberQuery.setUserId(userId);
+        memberQuery.setStatus("0");
+        memberQuery.setDelFlag("0");
+        List<ClubMember> members = clubMemberService.selectClubMemberList(memberQuery);
+        return members != null && !members.isEmpty();
+    }
+
+    private void attachRegisteredState(List<ClubActivity> activities, Long clubId, Long userId) {
+        if (activities == null || activities.isEmpty()) {
+            return;
+        }
+        if (userId == null) {
+            activities.forEach(item -> item.setHasRegistered(false));
+            return;
+        }
+
+        ClubActivityRegistration query = new ClubActivityRegistration();
+        query.setClubId(clubId);
+        query.setUserId(userId);
+        query.setDelFlag("0");
+        List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
+        if (records == null || records.isEmpty()) {
+            activities.forEach(item -> item.setHasRegistered(false));
+            return;
+        }
+        Set<Long> registeredActivityIds = records.stream()
+                .filter(item -> !"2".equals(item.getStatus()))
+                .map(ClubActivityRegistration::getActivityId)
+                .collect(Collectors.toSet());
+
+        activities.forEach(item -> item.setHasRegistered(registeredActivityIds.contains(item.getActivityId())));
     }
 }

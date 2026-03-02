@@ -20,14 +20,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="delFlag"    column="del_flag"    />
         <result property="activityTitle" column="activity_title" />
         <result property="clubName"      column="club_name"     />
+        <result property="avatar"        column="avatar"        />
     </resultMap>
 
     <sql id="selectClubActivityRegistrationVo">
         select r.registration_id, r.activity_id, r.club_id, r.user_id, r.user_name, r.nick_name, r.student_id, r.phone, r.registration_time, r.check_in_status, r.check_in_time, r.status, r.del_flag,
-               a.activity_title, c.club_name
+               a.activity_title, c.club_name, u.avatar
         from club_activity_registration r
         left join club_activity a on r.activity_id = a.activity_id
         left join club c on r.club_id = c.club_id
+        left join sys_user u on r.user_id = u.user_id
     </sql>
 
     <select id="selectClubActivityRegistrationList" parameterType="com.ruoyi.user.domain.ClubActivityRegistration" resultMap="ClubActivityRegistrationResult">
@@ -40,6 +42,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="nickName != null  and nickName != ''"> and r.nick_name like concat('%', #{nickName}, '%')</if>
             <if test="status != null  and status != ''"> and r.status = #{status}</if>
             <if test="checkInStatus != null  and checkInStatus != ''"> and r.check_in_status = #{checkInStatus}</if>
+            <if test="params != null and params.clubIds != null and params.clubIds.size() > 0">
+                and r.club_id in
+                <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+            </if>
         </where>
         order by r.registration_time desc
     </select>
@@ -98,6 +104,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="delFlag != null">del_flag = #{delFlag},</if>
         </trim>
         where registration_id = #{registrationId}
+    </update>
+
+    <update id="cancelActiveRegistration">
+        update club_activity_registration
+        set status = '2'
+        where activity_id = #{activityId}
+          and user_id = #{userId}
+          and del_flag = '0'
+          and status != '2'
     </update>
 
     <delete id="deleteClubActivityRegistrationById" parameterType="Long">

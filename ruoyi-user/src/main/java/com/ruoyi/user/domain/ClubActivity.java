@@ -46,6 +46,9 @@ public class ClubActivity extends BaseEntity {
     /** 关联社团名称 */
     private String clubName;
 
+    /** 当前登录用户是否已报名（非数据库字段） */
+    private Boolean hasRegistered;
+
     public Long getActivityId() { return activityId; }
     public void setActivityId(Long activityId) { this.activityId = activityId; }
     public Long getClubId() { return clubId; }
@@ -86,4 +89,6 @@ public class ClubActivity extends BaseEntity {
     public void setDelFlag(String delFlag) { this.delFlag = delFlag; }
     public String getClubName() { return clubName; }
     public void setClubName(String clubName) { this.clubName = clubName; }
+    public Boolean getHasRegistered() { return hasRegistered; }
+    public void setHasRegistered(Boolean hasRegistered) { this.hasRegistered = hasRegistered; }
 }

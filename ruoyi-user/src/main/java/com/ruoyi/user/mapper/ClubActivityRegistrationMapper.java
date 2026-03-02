@@ -1,6 +1,7 @@
 package com.ruoyi.user.mapper;
 
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 import com.ruoyi.user.domain.ClubActivityRegistration;
 
 /**
@@ -16,6 +17,8 @@ public interface ClubActivityRegistrationMapper {
     public int insertClubActivityRegistration(ClubActivityRegistration registration);
 
     public int updateClubActivityRegistration(ClubActivityRegistration registration);
+
+    public int cancelActiveRegistration(@Param("activityId") Long activityId, @Param("userId") Long userId);
 
     public int deleteClubActivityRegistrationById(Long registrationId);
 

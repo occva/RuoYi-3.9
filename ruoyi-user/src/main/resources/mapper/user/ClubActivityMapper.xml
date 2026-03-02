@@ -171,6 +171,13 @@
           and (max_participants is null or max_participants = 0 or IFNULL(current_participants, 0) &lt; max_participants)
     </update>
 
+    <update id="decrementParticipants">
+        update club_activity
+        set current_participants = GREATEST(0, IFNULL(current_participants, 0) - 1)
+        where activity_id = #{activityId}
+          and del_flag = '0'
+    </update>
+
     <update id="updateActivityStatusBasedOnTime">
         UPDATE club_activity
         SET status = CASE

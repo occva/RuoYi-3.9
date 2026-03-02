@@ -16,7 +16,7 @@ import com.ruoyi.user.service.IClubCategoryService;
  */
 @Anonymous
 @RestController
-@RequestMapping("/api/app/category")
+@RequestMapping({"/api/app/category", "/api/app/club/category"})
 public class AppCategoryController extends BaseController {
 
     @Autowired

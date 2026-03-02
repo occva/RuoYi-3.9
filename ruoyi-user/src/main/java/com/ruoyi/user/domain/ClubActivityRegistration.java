@@ -69,6 +69,7 @@ public class ClubActivityRegistration extends BaseEntity {
     // 扩展字段
     private String activityTitle;
     private String clubName;
+    private String avatar;
 
     public void setRegistrationId(Long registrationId) {
         this.registrationId = registrationId;
@@ -188,6 +189,14 @@ public class ClubActivityRegistration extends BaseEntity {
 
     public void setClubName(String clubName) {
         this.clubName = clubName;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.ruoyi.user.service.impl;
 
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,10 +10,8 @@ import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.mapper.SysRoleMapper;
-import com.ruoyi.system.service.ISysConfigService;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.user.domain.Club;
 import com.ruoyi.user.domain.ClubCreateApplication;
@@ -27,8 +26,6 @@ import com.ruoyi.user.service.IClubCreateApplicationService;
  */
 @Service
 public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationService {
-    private static final Long DEFAULT_DEPT_ID = 100L;
-
     @Autowired
     private ClubCreateApplicationMapper clubCreateApplicationMapper;
 
@@ -40,9 +37,6 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
 
     @Autowired
     private ISysUserService userService;
-
-    @Autowired
-    private ISysConfigService configService;
 
     @Autowired
     private SysRoleMapper roleMapper;
@@ -102,13 +96,9 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
             throw new ServiceException("社团名称已存在，无法通过该申请");
         }
 
-        String initPassword = configService.selectConfigByKey("sys.user.initPassword");
-        if (StringUtils.isBlank(initPassword)) {
-            initPassword = "123456";
-        }
-
-        SysUser adminUser = buildPresidentAdminUser(full, initPassword, application.getUpdateBy());
-        userService.insertUser(adminUser);
+        SysUser adminUser = resolveApplicantUser(full);
+        Long presidentRoleId = resolvePresidentRoleId();
+        ensureUserHasRole(adminUser.getUserId(), presidentRoleId);
 
         Club club = buildClub(full, adminUser, application.getUpdateBy());
         clubMapper.insertClub(club);
@@ -131,8 +121,8 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
         afterApprove.setApprovedClubId(club.getClubId());
         afterApprove.setAdminUserId(adminUser.getUserId());
         afterApprove.setAdminUserName(adminUser.getUserName());
-        afterApprove.setAdminInitPassword(initPassword);
-        afterApprove.setReviewComment(buildReviewComment(application.getReviewComment(), adminUser.getUserName(), initPassword));
+        afterApprove.setAdminInitPassword("");
+        afterApprove.setReviewComment(buildReviewComment(application.getReviewComment(), adminUser.getUserName()));
         afterApprove.setUpdateBy(application.getUpdateBy());
         afterApprove.setUpdateTime(DateUtils.getNowDate());
         clubCreateApplicationMapper.updateClubCreateApplication(afterApprove);
@@ -154,25 +144,6 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
         application.setActivityPlan(StringUtils.trimToNull(application.getActivityPlan()));
         application.setCoreMembers(StringUtils.trimToNull(application.getCoreMembers()));
         application.setAdvisorName(StringUtils.trimToNull(application.getAdvisorName()));
-    }
-
-    private SysUser buildPresidentAdminUser(ClubCreateApplication application, String initPassword, String createBy) {
-        Long presidentRoleId = resolvePresidentRoleId();
-        String userName = generateAdminUserName(application.getApplyId());
-        String nickName = StringUtils.isNotBlank(application.getApplicantNickName())
-                ? application.getApplicantNickName()
-                : application.getClubName() + "社长";
-
-        SysUser user = new SysUser();
-        user.setDeptId(DEFAULT_DEPT_ID);
-        user.setUserName(userName);
-        user.setNickName(nickName);
-        user.setStatus("0");
-        user.setPassword(SecurityUtils.encryptPassword(initPassword));
-        user.setRoleIds(new Long[] { presidentRoleId });
-        user.setCreateBy(createBy);
-        user.setRemark("Created from club create application #" + application.getApplyId());
-        return user;
     }
 
     private Club buildClub(ClubCreateApplication application, SysUser adminUser, String createBy) {
@@ -202,21 +173,32 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
         return role.getRoleId();
     }
 
-    private String generateAdminUserName(Long applyId) {
-        String base = "clubp" + applyId;
-        for (int i = 0; i < 20; i++) {
-            String candidate = i == 0 ? base : (base + "_" + i);
-            SysUser check = new SysUser();
-            check.setUserName(candidate);
-            if (userService.checkUserNameUnique(check)) {
-                return candidate;
-            }
+    private SysUser resolveApplicantUser(ClubCreateApplication application) {
+        if (application.getApplicantUserId() == null) {
+            throw new ServiceException("申请人账号信息缺失，无法通过审核");
         }
-        throw new ServiceException("自动生成后台账号失败，请重试");
+        SysUser user = userService.selectUserById(application.getApplicantUserId());
+        if (user == null || !"0".equals(user.getDelFlag())) {
+            throw new ServiceException("申请人账号不存在或已删除，无法通过审核");
+        }
+        if (!"0".equals(user.getStatus())) {
+            throw new ServiceException("申请人账号已停用，无法通过审核");
+        }
+        return user;
     }
 
-    private String buildReviewComment(String original, String userName, String password) {
-        String credentialMessage = "审核通过，已创建社长后台账号：" + userName + "，初始密码：" + password;
+    private void ensureUserHasRole(Long userId, Long roleId) {
+        List<Long> roleIds = roleMapper.selectRoleListByUserId(userId);
+        List<Long> merged = roleIds == null ? new ArrayList<>() : new ArrayList<>(roleIds);
+        if (merged.contains(roleId)) {
+            return;
+        }
+        merged.add(roleId);
+        userService.insertUserAuth(userId, merged.toArray(new Long[0]));
+    }
+
+    private String buildReviewComment(String original, String userName) {
+        String credentialMessage = "审核通过，已将申请人账号升级为社长后台账号：" + userName + "（密码保持不变）";
         if (StringUtils.isBlank(original)) {
             return credentialMessage;
         }

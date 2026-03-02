@@ -199,6 +199,27 @@ public class AppClubController extends BaseController {
     }
 
     /**
+     * 获取单条创建社团申请（用于重新申请预填）
+     */
+    @GetMapping("/create-application/{applyId}")
+    public AjaxResult getCreateApplication(@PathVariable Long applyId) {
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+        ClubCreateApplication app = clubCreateApplicationService.selectClubCreateApplicationById(applyId);
+        if (app == null || "2".equals(app.getDelFlag())) {
+            return error("申请记录不存在");
+        }
+        if (!app.getApplicantUserId().equals(currentUser.getUserId())) {
+            return error("无权访问");
+        }
+        return success(app);
+    }
+
+    /**
      * 新社团申请（用户端）
      */
     @PostMapping("/apply")
@@ -356,5 +377,65 @@ public class AppClubController extends BaseController {
         }
 
         return toAjax(memberService.deleteClubMemberById(member.getMemberId()));
+    }
+
+    /**
+     * 撤回入社申请（仅待审核状态可撤回）
+     */
+    @PostMapping("/cancel-join/{applicationId}")
+    public AjaxResult cancelJoinApplication(@PathVariable Long applicationId) {
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+
+        ClubApplication app = applicationService.selectClubApplicationById(applicationId);
+        if (app == null || "2".equals(app.getDelFlag())) {
+            return error("申请记录不存在");
+        }
+        if (!app.getUserId().equals(currentUser.getUserId())) {
+            return error("无权操作他人申请");
+        }
+        if (!"0".equals(app.getStatus())) {
+            return error("只有待审核状态的申请可以撤回");
+        }
+
+        ClubApplication update = new ClubApplication();
+        update.setApplicationId(applicationId);
+        update.setStatus("3"); // 已撤回
+        update.setUpdateBy(getUsername());
+        return toAjax(applicationService.updateClubApplication(update));
+    }
+
+    /**
+     * 撤回创建社团申请（仅待审核状态可撤回）
+     */
+    @PostMapping("/cancel-create/{applyId}")
+    public AjaxResult cancelCreateApplication(@PathVariable Long applyId) {
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+
+        ClubCreateApplication app = clubCreateApplicationService.selectClubCreateApplicationById(applyId);
+        if (app == null || "2".equals(app.getDelFlag())) {
+            return error("申请记录不存在");
+        }
+        if (!app.getApplicantUserId().equals(currentUser.getUserId())) {
+            return error("无权操作他人申请");
+        }
+        if (!"0".equals(app.getStatus())) {
+            return error("只有待审核状态的申请可以撤回");
+        }
+
+        ClubCreateApplication update = new ClubCreateApplication();
+        update.setApplyId(applyId);
+        update.setStatus("3"); // 已撤回
+        update.setUpdateBy(getUsername());
+        return toAjax(clubCreateApplicationService.updateClubCreateApplication(update));
     }
 }

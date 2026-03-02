@@ -27,6 +27,8 @@ public interface ClubActivityMapper {
 
     int incrementParticipantsIfAvailable(@Param("activityId") Long activityId);
 
+    int decrementParticipants(@Param("activityId") Long activityId);
+
     int updateActivityStatusBasedOnTime();
 
     int countOngoingByClubId(Long clubId);

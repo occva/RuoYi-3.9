@@ -25,6 +25,8 @@ public interface IClubActivityService {
 
     int incrementParticipantsIfAvailable(Long activityId);
 
+    int decrementParticipants(Long activityId);
+
     void updateActivityStatusBasedOnTime();
 
     /**

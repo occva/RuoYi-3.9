@@ -68,6 +68,34 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectClubMemberById" parameterType="Long" resultMap="ClubMemberResult">
         <include refid="selectClubMemberVo"/>
         where m.member_id = #{memberId}
+          and m.del_flag = '0'
+    </select>
+
+    <select id="selectClubMemberByIdForUpdate" resultMap="ClubMemberResult">
+        <include refid="selectClubMemberVo"/>
+        where m.member_id = #{memberId}
+          and m.del_flag = '0'
+        for update
+    </select>
+
+    <select id="selectCurrentPresidentByClubIdForUpdate" resultMap="ClubMemberResult">
+        <include refid="selectClubMemberVo"/>
+        where m.club_id = #{clubId}
+          and m.role_type = '1'
+          and m.status = '0'
+          and m.del_flag = '0'
+        order by m.member_id asc
+        limit 1
+        for update
+    </select>
+
+    <select id="countActiveManagementMembership" resultType="int">
+        select count(1)
+        from club_member
+        where user_id = #{userId}
+          and role_type = #{roleType}
+          and status = '0'
+          and del_flag = '0'
     </select>
         
     <insert id="insertClubMember" parameterType="com.ruoyi.user.domain.ClubMember" useGeneratedKeys="true" keyProperty="memberId">
@@ -134,14 +162,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteClubMemberById" parameterType="Long">
-        update club_member set del_flag = '2' where member_id = #{memberId}
+        update club_member
+        set del_flag = '2'
+        where member_id = #{memberId}
+          and del_flag = '0'
+          and role_type != '1'
     </delete>
 
     <delete id="deleteClubMemberByIds" parameterType="Long">
-        update club_member set del_flag = '2' where member_id in 
+        update club_member
+        set del_flag = '2'
+        where member_id in
         <foreach item="memberId" collection="array" open="(" separator="," close=")">
             #{memberId}
         </foreach>
+          and del_flag = '0'
+          and role_type != '1'
     </delete>
 
     <!-- 成员统计：按状态统计（支持日期筛选） -->

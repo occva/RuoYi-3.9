@@ -1,7 +1,6 @@
 package com.ruoyi.user.service.impl;
 
 import java.util.Date;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +11,7 @@ import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.mapper.SysRoleMapper;
+import com.ruoyi.system.mapper.SysUserRoleMapper;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.user.domain.Club;
 import com.ruoyi.user.domain.ClubCreateApplication;
@@ -40,6 +40,9 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
 
     @Autowired
     private SysRoleMapper roleMapper;
+
+    @Autowired
+    private SysUserRoleMapper userRoleMapper;
 
     @Override
     public ClubCreateApplication selectClubCreateApplicationById(Long applyId) {
@@ -188,13 +191,7 @@ public class ClubCreateApplicationServiceImpl implements IClubCreateApplicationS
     }
 
     private void ensureUserHasRole(Long userId, Long roleId) {
-        List<Long> roleIds = roleMapper.selectRoleListByUserId(userId);
-        List<Long> merged = roleIds == null ? new ArrayList<>() : new ArrayList<>(roleIds);
-        if (merged.contains(roleId)) {
-            return;
-        }
-        merged.add(roleId);
-        userService.insertUserAuth(userId, merged.toArray(new Long[0]));
+        userRoleMapper.insertUserRoleIgnore(userId, roleId);
     }
 
     private String buildReviewComment(String original, String userName) {

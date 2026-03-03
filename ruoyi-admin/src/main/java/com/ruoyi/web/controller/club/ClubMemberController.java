@@ -85,6 +85,38 @@ public class ClubMemberController extends BaseController {
     }
 
     /**
+     * 转让社长
+     */
+    @PreAuthorize("@ss.hasPermi('club:member:edit')")
+    @Log(title = "社团成员", businessType = BusinessType.UPDATE)
+    @PutMapping("/transfer-president")
+    public AjaxResult transferPresident(@RequestBody TransferPresidentBody body) {
+        return toAjax(
+                clubMemberService.transferPresident(body.getClubId(), body.getFromMemberId(), body.getToMemberId(),
+                        body.getFromPresidentNewRoleType()));
+    }
+
+    /**
+     * 任命副社长
+     */
+    @PreAuthorize("@ss.hasPermi('club:member:edit')")
+    @Log(title = "社团成员", businessType = BusinessType.UPDATE)
+    @PutMapping("/appoint-vice-president")
+    public AjaxResult appointVicePresident(@RequestBody VicePresidentBody body) {
+        return toAjax(clubMemberService.appointVicePresident(body.getClubId(), body.getMemberId()));
+    }
+
+    /**
+     * 撤销副社长
+     */
+    @PreAuthorize("@ss.hasPermi('club:member:edit')")
+    @Log(title = "社团成员", businessType = BusinessType.UPDATE)
+    @PutMapping("/revoke-vice-president")
+    public AjaxResult revokeVicePresident(@RequestBody RevokeVicePresidentBody body) {
+        return toAjax(clubMemberService.revokeVicePresident(body.getClubId(), body.getMemberId(), body.getToRoleType()));
+    }
+
+    /**
      * 删除社团成员
      */
     @PreAuthorize("@ss.hasPermi('club:member:remove')")
@@ -102,5 +134,77 @@ public class ClubMemberController extends BaseController {
     public AjaxResult stat(@org.springframework.web.bind.annotation.RequestParam(required = false) String beginTime,
             @org.springframework.web.bind.annotation.RequestParam(required = false) String endTime) {
         return success(clubMemberService.getStatData(beginTime, endTime));
+    }
+
+    public static class TransferPresidentBody {
+        private Long clubId;
+        private Long fromMemberId;
+        private Long toMemberId;
+        private String fromPresidentNewRoleType;
+
+        public Long getClubId() {
+            return clubId;
+        }
+
+        public void setClubId(Long clubId) {
+            this.clubId = clubId;
+        }
+
+        public Long getFromMemberId() {
+            return fromMemberId;
+        }
+
+        public void setFromMemberId(Long fromMemberId) {
+            this.fromMemberId = fromMemberId;
+        }
+
+        public Long getToMemberId() {
+            return toMemberId;
+        }
+
+        public void setToMemberId(Long toMemberId) {
+            this.toMemberId = toMemberId;
+        }
+
+        public String getFromPresidentNewRoleType() {
+            return fromPresidentNewRoleType;
+        }
+
+        public void setFromPresidentNewRoleType(String fromPresidentNewRoleType) {
+            this.fromPresidentNewRoleType = fromPresidentNewRoleType;
+        }
+    }
+
+    public static class VicePresidentBody {
+        private Long clubId;
+        private Long memberId;
+
+        public Long getClubId() {
+            return clubId;
+        }
+
+        public void setClubId(Long clubId) {
+            this.clubId = clubId;
+        }
+
+        public Long getMemberId() {
+            return memberId;
+        }
+
+        public void setMemberId(Long memberId) {
+            this.memberId = memberId;
+        }
+    }
+
+    public static class RevokeVicePresidentBody extends VicePresidentBody {
+        private String toRoleType;
+
+        public String getToRoleType() {
+            return toRoleType;
+        }
+
+        public void setToRoleType(String toRoleType) {
+            this.toRoleType = toRoleType;
+        }
     }
 }

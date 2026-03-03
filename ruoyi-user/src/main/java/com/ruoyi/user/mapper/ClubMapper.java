@@ -20,6 +20,11 @@ public interface ClubMapper {
         Club selectClubById(Long clubId);
 
         /**
+         * 根据ID查询社团并加锁（for update）
+         */
+        Club selectClubByIdForUpdate(Long clubId);
+
+        /**
          * 浏览量 +1
          */
         int incrementViewCount(@Param("clubId") Long clubId);

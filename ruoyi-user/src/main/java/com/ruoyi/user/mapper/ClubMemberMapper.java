@@ -13,6 +13,11 @@ import com.ruoyi.user.domain.ClubMember;
 public interface ClubMemberMapper {
     public ClubMember selectClubMemberById(Long memberId);
 
+    /**
+     * 按成员ID加锁查询（for update）
+     */
+    ClubMember selectClubMemberByIdForUpdate(@Param("memberId") Long memberId);
+
     public List<ClubMember> selectClubMemberList(ClubMember clubMember);
 
     public int insertClubMember(ClubMember clubMember);
@@ -28,6 +33,16 @@ public interface ClubMemberMapper {
      * role_type: 1=社长, 2=副社长
      */
     List<Long> selectManagedClubIdsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询社团当前有效社长并加锁
+     */
+    ClubMember selectCurrentPresidentByClubIdForUpdate(@Param("clubId") Long clubId);
+
+    /**
+     * 查询用户在有效成员中的管理角色数量（status=0 且 del_flag=0）
+     */
+    int countActiveManagementMembership(@Param("userId") Long userId, @Param("roleType") String roleType);
 
     /** 成员统计 - 按状态统计 */
     List<Map<String, Object>> selectMemberStatusStat(@Param("beginTime") String beginTime,

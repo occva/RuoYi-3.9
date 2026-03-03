@@ -63,6 +63,11 @@ public interface IClubMemberService {
     public java.util.Map<String, Object> getStatData(String beginTime, String endTime);
 
     /**
+     * 判断用户是否是社团有效成员（status=0 且 del_flag=0）
+     */
+    public boolean isActiveMember(Long clubId, Long userId);
+
+    /**
      * 转让社长（目标成员升级为社长，原社长降级为副社长或普通成员）
      *
      * @param clubId                  社团ID

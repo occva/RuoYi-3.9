@@ -26,6 +26,13 @@ public interface ClubApplicationMapper {
     public List<ClubApplication> selectClubApplicationList(ClubApplication clubApplication);
 
     /**
+     * 判断用户是否存在待审核入社申请（review_status=0 且 del_flag=0）
+     */
+    public int existsPendingApplication(
+            @org.apache.ibatis.annotations.Param("clubId") Long clubId,
+            @org.apache.ibatis.annotations.Param("userId") Long userId);
+
+    /**
      * 新增入社申请
      * 
      * @param clubApplication 入社申请

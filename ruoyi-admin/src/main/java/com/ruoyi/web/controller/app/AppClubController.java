@@ -102,22 +102,48 @@ public class AppClubController extends BaseController {
 
         Long userId = user.getUserId();
         AjaxResult ajax = AjaxResult.success();
-        ajax.put("joined", clubService.selectClubListByUserId(userId));
-        ajax.put("managed", clubService.selectClubListByPresidentId(userId));
+        fillMyBaseData(ajax, userId);
+        fillMyApplicationsData(ajax, userId);
+        fillMyFavoritesData(ajax, userId);
+        return ajax;
+    }
 
-        ClubApplication appQuery = new ClubApplication();
-        appQuery.setUserId(userId);
-        appQuery.setDelFlag("0");
-        ajax.put("applications", applicationService.selectClubApplicationList(appQuery));
+    @GetMapping("/my/base")
+    public AjaxResult myBase() {
+        SysUser user;
+        try {
+            user = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("璇峰厛鐧诲綍");
+        }
+        AjaxResult ajax = AjaxResult.success();
+        fillMyBaseData(ajax, user.getUserId());
+        return ajax;
+    }
 
-        ClubCreateApplication createAppQuery = new ClubCreateApplication();
-        createAppQuery.setApplicantUserId(userId);
-        createAppQuery.setDelFlag("0");
-        ajax.put("createApplications", clubCreateApplicationService.selectClubCreateApplicationList(createAppQuery));
+    @GetMapping("/my/favorites")
+    public AjaxResult myFavorites() {
+        SysUser user;
+        try {
+            user = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("璇峰厛鐧诲綍");
+        }
+        AjaxResult ajax = AjaxResult.success();
+        fillMyFavoritesData(ajax, user.getUserId());
+        return ajax;
+    }
 
-        ClubFavorite favQuery = new ClubFavorite();
-        favQuery.setUserId(userId);
-        ajax.put("favorites", favoriteService.selectClubFavoriteList(favQuery));
+    @GetMapping("/my/applications")
+    public AjaxResult myApplications() {
+        SysUser user;
+        try {
+            user = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("璇峰厛鐧诲綍");
+        }
+        AjaxResult ajax = AjaxResult.success();
+        fillMyApplicationsData(ajax, user.getUserId());
         return ajax;
     }
 
@@ -155,21 +181,10 @@ public class AppClubController extends BaseController {
         if (currentUser != null) {
             Long userId = currentUser.getUserId();
 
-            ClubMember memberQuery = new ClubMember();
-            memberQuery.setClubId(clubId);
-            memberQuery.setUserId(userId);
-            memberQuery.setDelFlag("0");
-            List<ClubMember> members = memberService.selectClubMemberList(memberQuery);
-            club.setMember(members != null && !members.isEmpty());
+            club.setMember(memberService.isActiveMember(clubId, userId));
 
             if (!club.isMember()) {
-                ClubApplication appQuery = new ClubApplication();
-                appQuery.setClubId(clubId);
-                appQuery.setUserId(userId);
-                appQuery.setStatus("0");
-                appQuery.setDelFlag("0");
-                List<ClubApplication> apps = applicationService.selectClubApplicationList(appQuery);
-                club.setHasApplied(apps != null && !apps.isEmpty());
+                club.setHasApplied(applicationService.hasPendingApplication(clubId, userId));
             }
 
             club.setFavorite(favoriteService.isFavorite(userId, clubId));
@@ -196,6 +211,29 @@ public class AppClubController extends BaseController {
             // ignore
         }
         return null;
+    }
+
+    private void fillMyBaseData(AjaxResult ajax, Long userId) {
+        ajax.put("joined", clubService.selectClubListByUserId(userId));
+        ajax.put("managed", clubService.selectClubListByPresidentId(userId));
+    }
+
+    private void fillMyApplicationsData(AjaxResult ajax, Long userId) {
+        ClubApplication appQuery = new ClubApplication();
+        appQuery.setUserId(userId);
+        appQuery.setDelFlag("0");
+        ajax.put("applications", applicationService.selectClubApplicationList(appQuery));
+
+        ClubCreateApplication createAppQuery = new ClubCreateApplication();
+        createAppQuery.setApplicantUserId(userId);
+        createAppQuery.setDelFlag("0");
+        ajax.put("createApplications", clubCreateApplicationService.selectClubCreateApplicationList(createAppQuery));
+    }
+
+    private void fillMyFavoritesData(AjaxResult ajax, Long userId) {
+        ClubFavorite favQuery = new ClubFavorite();
+        favQuery.setUserId(userId);
+        ajax.put("favorites", favoriteService.selectClubFavoriteList(favQuery));
     }
 
     /**
@@ -288,23 +326,10 @@ public class AppClubController extends BaseController {
 
         SysUser currentUser = getLoginUser().getUser();
         Long userId = currentUser.getUserId();
-
-        ClubMember memberQuery = new ClubMember();
-        memberQuery.setClubId(clubId);
-        memberQuery.setUserId(userId);
-        memberQuery.setDelFlag("0");
-        List<ClubMember> existingMembers = memberService.selectClubMemberList(memberQuery);
-        if (existingMembers != null && !existingMembers.isEmpty()) {
+        if (memberService.isActiveMember(clubId, userId)) {
             return error("您已经是该社团成员");
         }
-
-        ClubApplication appQuery = new ClubApplication();
-        appQuery.setClubId(clubId);
-        appQuery.setUserId(userId);
-        appQuery.setStatus("0");
-        appQuery.setDelFlag("0");
-        List<ClubApplication> existingApplications = applicationService.selectClubApplicationList(appQuery);
-        if (existingApplications != null && !existingApplications.isEmpty()) {
+        if (applicationService.hasPendingApplication(clubId, userId)) {
             return error("您已提交过入社申请，请等待审核");
         }
 

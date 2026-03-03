@@ -55,6 +55,14 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
         return clubApplicationMapper.selectClubApplicationList(clubApplication);
     }
 
+    @Override
+    public boolean hasPendingApplication(Long clubId, Long userId) {
+        if (clubId == null || userId == null) {
+            return false;
+        }
+        return clubApplicationMapper.existsPendingApplication(clubId, userId) > 0;
+    }
+
     /**
      * 新增入社申请
      * 
@@ -110,11 +118,7 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
             member.setCreateTime(new Date());
 
             // 检查是否已经是成员，避免重复插入
-            ClubMember query = new ClubMember();
-            query.setClubId(fullApp.getClubId());
-            query.setUserId(fullApp.getUserId());
-            List<ClubMember> existingMembers = clubMemberMapper.selectClubMemberList(query);
-            if (existingMembers == null || existingMembers.isEmpty()) {
+            if (clubMemberMapper.existsActiveMember(fullApp.getClubId(), fullApp.getUserId()) <= 0) {
                 clubMemberMapper.insertClubMember(member);
             }
         }

@@ -237,6 +237,14 @@ public class ClubMemberServiceImpl implements IClubMemberService {
     }
 
     @Override
+    public boolean isActiveMember(Long clubId, Long userId) {
+        if (clubId == null || userId == null) {
+            return false;
+        }
+        return clubMemberMapper.existsActiveMember(clubId, userId) > 0;
+    }
+
+    @Override
     @Transactional
     public int transferPresident(Long clubId, Long fromMemberId, Long toMemberId, String fromPresidentNewRoleType) {
         if (toMemberId == null) {

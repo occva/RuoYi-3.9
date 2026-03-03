@@ -61,6 +61,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </where>
         order by ca.application_time desc
     </select>
+
+    <select id="existsPendingApplication" resultType="int">
+        select count(1)
+        from club_application
+        where club_id = #{clubId}
+          and user_id = #{userId}
+          and review_status = '0'
+          and del_flag = '0'
+    </select>
     
     <select id="selectClubApplicationById" parameterType="Long" resultMap="ClubApplicationResult">
         <include refid="selectClubApplicationVo"/>

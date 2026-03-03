@@ -38,7 +38,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="checkFavorite" resultMap="ClubFavoriteResult">
-        <include refid="selectClubFavoriteVo"/>
+        select cf.favorite_id, cf.user_id, cf.club_id, cf.create_time
+        from club_favorite cf
         where cf.user_id = #{userId} and cf.club_id = #{clubId}
         limit 1
     </select>

@@ -97,6 +97,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           and status = '0'
           and del_flag = '0'
     </select>
+
+    <select id="existsActiveMember" resultType="int">
+        select count(1)
+        from club_member
+        where club_id = #{clubId}
+          and user_id = #{userId}
+          and status = '0'
+          and del_flag = '0'
+    </select>
         
     <insert id="insertClubMember" parameterType="com.ruoyi.user.domain.ClubMember" useGeneratedKeys="true" keyProperty="memberId">
         insert into club_member

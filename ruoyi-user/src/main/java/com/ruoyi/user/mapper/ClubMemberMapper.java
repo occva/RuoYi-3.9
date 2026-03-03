@@ -44,6 +44,11 @@ public interface ClubMemberMapper {
      */
     int countActiveManagementMembership(@Param("userId") Long userId, @Param("roleType") String roleType);
 
+    /**
+     * 判断用户是否是社团有效成员（status=0 且 del_flag=0）
+     */
+    int existsActiveMember(@Param("clubId") Long clubId, @Param("userId") Long userId);
+
     /** 成员统计 - 按状态统计 */
     List<Map<String, Object>> selectMemberStatusStat(@Param("beginTime") String beginTime,
             @Param("endTime") String endTime,

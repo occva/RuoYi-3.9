@@ -3,6 +3,7 @@ package com.ruoyi.user.service.impl;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import com.ruoyi.user.mapper.ClubFavoriteMapper;
 import com.ruoyi.user.domain.ClubFavorite;
@@ -88,19 +89,23 @@ public class ClubFavoriteServiceImpl implements IClubFavoriteService {
 
     @Override
     public boolean toggleFavorite(Long userId, Long clubId) {
-        ClubFavorite existing = clubFavoriteMapper.checkFavorite(userId, clubId);
-        if (existing != null) {
-            // Already favorite, remove it
-            clubFavoriteMapper.deleteClubFavoriteByUserAndClub(userId, clubId);
-            return false; // Removed
-        } else {
-            // accessible add
-            ClubFavorite fav = new ClubFavorite();
-            fav.setUserId(userId);
-            fav.setClubId(clubId);
-            fav.setCreateTime(new Date());
+        // Fast path: if favorite exists, delete in one SQL and return "unfavorited".
+        int deleted = clubFavoriteMapper.deleteClubFavoriteByUserAndClub(userId, clubId);
+        if (deleted > 0) {
+            return false;
+        }
+
+        // Not found, create favorite.
+        ClubFavorite fav = new ClubFavorite();
+        fav.setUserId(userId);
+        fav.setClubId(clubId);
+        fav.setCreateTime(new Date());
+        try {
             clubFavoriteMapper.insertClubFavorite(fav);
-            return true; // Added
+            return true;
+        } catch (DuplicateKeyException e) {
+            // Concurrent add request already inserted it.
+            return true;
         }
     }
 

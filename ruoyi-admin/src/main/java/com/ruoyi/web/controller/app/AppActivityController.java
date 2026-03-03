@@ -25,7 +25,6 @@ import com.ruoyi.user.domain.ClubActivityRegistration;
 import com.ruoyi.user.service.IClubActivityRegistrationService;
 import com.ruoyi.user.service.IClubActivityService;
 import com.ruoyi.user.service.IClubMemberService;
-import com.ruoyi.user.domain.ClubMember;
 
 /**
  * 用户端活动接口
@@ -161,12 +160,7 @@ public class AppActivityController extends BaseController {
         Long userId = currentUser.getUserId();
 
         // 校验是否是该社团成员
-        ClubMember memberQuery = new ClubMember();
-        memberQuery.setUserId(userId);
-        memberQuery.setClubId(activity.getClubId());
-        memberQuery.setStatus("0"); // 正常状态
-        List<ClubMember> members = clubMemberService.selectClubMemberList(memberQuery);
-        if (members == null || members.isEmpty()) {
+        if (!clubMemberService.isActiveMember(activity.getClubId(), userId)) {
             return AjaxResult.error(403, "请先加入社团后再报名")
                     .put("errorKey", "ACTIVITY_NEED_CLUB_MEMBER");
         }
@@ -291,13 +285,7 @@ public class AppActivityController extends BaseController {
         if (clubId == null || userId == null) {
             return false;
         }
-        ClubMember memberQuery = new ClubMember();
-        memberQuery.setClubId(clubId);
-        memberQuery.setUserId(userId);
-        memberQuery.setStatus("0");
-        memberQuery.setDelFlag("0");
-        List<ClubMember> members = clubMemberService.selectClubMemberList(memberQuery);
-        return members != null && !members.isEmpty();
+        return clubMemberService.isActiveMember(clubId, userId);
     }
 
     private void attachRegisteredState(List<ClubActivity> activities, Long clubId, Long userId) {

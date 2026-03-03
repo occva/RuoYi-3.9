@@ -114,7 +114,7 @@ public class AppClubController extends BaseController {
         try {
             user = getLoginUser().getUser();
         } catch (Exception e) {
-            return error("璇峰厛鐧诲綍");
+            return error("请先登录");
         }
         AjaxResult ajax = AjaxResult.success();
         fillMyBaseData(ajax, user.getUserId());
@@ -127,7 +127,7 @@ public class AppClubController extends BaseController {
         try {
             user = getLoginUser().getUser();
         } catch (Exception e) {
-            return error("璇峰厛鐧诲綍");
+            return error("请先登录");
         }
         AjaxResult ajax = AjaxResult.success();
         fillMyFavoritesData(ajax, user.getUserId());
@@ -140,7 +140,7 @@ public class AppClubController extends BaseController {
         try {
             user = getLoginUser().getUser();
         } catch (Exception e) {
-            return error("璇峰厛鐧诲綍");
+            return error("请先登录");
         }
         AjaxResult ajax = AjaxResult.success();
         fillMyApplicationsData(ajax, user.getUserId());

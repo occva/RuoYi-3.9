@@ -1,6 +1,7 @@
 package com.ruoyi.framework.web.service;
 
 import jakarta.annotation.Resource;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -35,6 +36,9 @@ import com.ruoyi.system.service.ISysUserService;
  */
 @Component
 public class SysLoginService {
+    private static final String CLIENT_TYPE_ADMIN = "admin";
+    private static final String CLIENT_TYPE_USER = "user";
+
     @Autowired
     private TokenService tokenService;
 
@@ -50,6 +54,9 @@ public class SysLoginService {
     @Autowired
     private ISysConfigService configService;
 
+    @Autowired
+    private SysPermissionService permissionService;
+
     /**
      * 登录验证
      * 
@@ -60,6 +67,24 @@ public class SysLoginService {
      * @return 结果
      */
     public String login(String username, String password, String code, String uuid) {
+        return login(username, password, code, uuid, "user");
+    }
+
+    private String normalizeClientType(String clientType) {
+        return CLIENT_TYPE_ADMIN.equalsIgnoreCase(clientType) ? CLIENT_TYPE_ADMIN : CLIENT_TYPE_USER;
+    }
+
+    /**
+     * 登录验证（支持客户端类型）
+     *
+     * @param username   用户名
+     * @param password   密码
+     * @param code       验证码
+     * @param uuid       唯一标识
+     * @param clientType 客户端类型：admin/user
+     * @return 结果
+     */
+    public String login(String username, String password, String code, String uuid, String clientType) {
         // 验证码校验
         validateCaptcha(username, code, uuid);
         // 登录前置校验
@@ -87,12 +112,33 @@ public class SysLoginService {
         }
 
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        String normalizedClientType = normalizeClientType(clientType);
+        ensureAdminClientAccess(loginUser, normalizedClientType);
+        loginUser.setClientType(normalizedClientType);
 
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS,
                 MessageUtils.message("user.login.success")));
         recordLoginInfo(loginUser.getUserId());
         // 生成token
         return tokenService.createToken(loginUser);
+    }
+
+    private void ensureAdminClientAccess(LoginUser loginUser, String clientType) {
+        if (!CLIENT_TYPE_ADMIN.equalsIgnoreCase(StringUtils.nvl(clientType, CLIENT_TYPE_USER))) {
+            return;
+        }
+        if (loginUser == null || loginUser.getUser() == null) {
+            throw new ServiceException("账号信息异常");
+        }
+        if (loginUser.getUser().isAdmin()) {
+            return;
+        }
+        Set<String> roleKeys = permissionService.getRolePermission(loginUser.getUser());
+        boolean allowed = roleKeys != null && roleKeys.stream().anyMatch(
+                role -> "club_admin".equals(role) || "president".equals(role) || "vice_president".equals(role));
+        if (!allowed) {
+            throw new ServiceException("当前账号无管理端访问权限，请使用用户端入口登录");
+        }
     }
 
     /**

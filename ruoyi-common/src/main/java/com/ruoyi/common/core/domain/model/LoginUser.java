@@ -67,6 +67,11 @@ public class LoginUser implements UserDetails
     private Set<String> permissions;
 
     /**
+     * 登录客户端类型：admin/user
+     */
+    private String clientType;
+
+    /**
      * 用户信息
      */
     private SysUser user;
@@ -246,6 +251,16 @@ public class LoginUser implements UserDetails
     public void setPermissions(Set<String> permissions)
     {
         this.permissions = permissions;
+    }
+
+    public String getClientType()
+    {
+        return clientType;
+    }
+
+    public void setClientType(String clientType)
+    {
+        this.clientType = clientType;
     }
 
     public SysUser getUser()

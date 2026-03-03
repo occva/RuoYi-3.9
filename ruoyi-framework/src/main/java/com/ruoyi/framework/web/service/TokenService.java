@@ -52,6 +52,11 @@ public class TokenService
 
     protected static final long MILLIS_MINUTE = 60 * MILLIS_SECOND;
 
+    /**
+     * Remaining lifetime threshold for refreshing token in Redis.
+     */
+    protected static final long MILLIS_MINUTE_TWENTY = 20 * MILLIS_MINUTE;
+
     @Autowired
     private RedisCache redisCache;
 
@@ -133,7 +138,12 @@ public class TokenService
      */
     public void verifyToken(LoginUser loginUser)
     {
-        refreshToken(loginUser);
+        long expireTime = loginUser.getExpireTime();
+        long currentTime = System.currentTimeMillis();
+        if (expireTime - currentTime <= MILLIS_MINUTE_TWENTY)
+        {
+            refreshToken(loginUser);
+        }
     }
 
     /**

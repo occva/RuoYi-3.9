@@ -68,6 +68,7 @@ public class SecurityConfig {
                     requests.requestMatchers("/login", "/register", "/captchaImage").permitAll()
                             .requestMatchers("/api/user/**").permitAll()
                             .requestMatchers("/api/app/**").permitAll()
+                            .requestMatchers("/error").permitAll()
                             .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.css", "/*.js", "/favicon.ico")
                             .permitAll()
                             .requestMatchers(HttpMethod.GET, "/static/**", "/assets/**").permitAll()

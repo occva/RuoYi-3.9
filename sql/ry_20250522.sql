@@ -270,7 +270,7 @@ insert into sys_menu values('3203', '申请统计', '3200', '3', 'application-st
 insert into sys_menu values('3300', '社团宣传', '0', '3', 'club-promotion',  null,                        '', '', 1, 0, 'M', '0', '0', '',                             'message', 'admin', sysdate(), '', null, '社团宣传管理目录');
 insert into sys_menu values('3301', '活动管理', '3300', '1', 'activity',     'club/activity/index',       '', '', 1, 0, 'C', '0', '0', 'system:activity:list',          'date',    'admin', sysdate(), '', null, '社团活动管理');
 insert into sys_menu values('3302', '公告管理', '3300', '2', 'notice',       'club/notice/index',         '', '', 1, 0, 'C', '0', '0', 'system:notice:list',            'message', 'admin', sysdate(), '', null, '社团公告管理');
-insert into sys_menu values('3303', '报名管理', '3300', '3', 'registration', 'club/registration/index',   '', '', 1, 0, 'C', '0', '0', 'club:registration:list',        'checkbox','admin', sysdate(), '', null, '活动报名管理');
+insert into sys_menu values('3303', '签到管理', '3300', '3', 'registration', 'club/registration/index',   '', '', 1, 0, 'C', '0', '0', 'club:registration:list',        'checkbox','admin', sysdate(), '', null, '活动签到管理');
 -- 数据统计
 insert into sys_menu values('3400', '数据统计', '0', '4', 'statistics',      null,                        '', '', 1, 0, 'M', '0', '0', '',                             'chart',   'admin', sysdate(), '', null, '数据统计目录');
 insert into sys_menu values('3401', '社团统计', '3400', '1', 'club-stat',    'statistics/club-stat/index',     '', '', 1, 0, 'C', '0', '0', 'system:statistics:club',        'peoples', 'admin', sysdate(), '', null, '社团数据统计');
@@ -765,9 +765,9 @@ insert into sys_menu values('3322', '公告新增', '3302', '2', '#', '', '', ''
 insert into sys_menu values('3323', '公告修改', '3302', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:edit',           '#', 'admin', sysdate(), '', null, '');
 insert into sys_menu values('3324', '公告删除', '3302', '4', '#', '', '', '', 1, 0, 'F', '0', '0', 'system:notice:remove',         '#', 'admin', sysdate(), '', null, '');
 
--- 报名管理按钮 (parent: 3303)
-insert into sys_menu values('3331', '报名查询', '3303', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:query',      '#', 'admin', sysdate(), '', null, '');
-insert into sys_menu values('3332', '报名签到', '3303', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:edit',       '#', 'admin', sysdate(), '', null, '');
+-- 签到管理按钮 (parent: 3303)
+insert into sys_menu values('3331', '签到查询', '3303', '1', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:query',      '#', 'admin', sysdate(), '', null, '');
+insert into sys_menu values('3332', '手动签到', '3303', '2', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:edit',       '#', 'admin', sysdate(), '', null, '');
 insert into sys_menu values('3333', '报名移除', '3303', '3', '#', '', '', '', 1, 0, 'F', '0', '0', 'club:registration:remove',     '#', 'admin', sysdate(), '', null, '');
 
 -- 管理员(1) 与 社团管理员(100): 拥有全部社团模块按钮权限

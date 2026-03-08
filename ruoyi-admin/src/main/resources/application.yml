@@ -47,6 +47,14 @@ user:
 
 # Spring配置
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+      - optional:file:./RuoYi-Vue/.env[.properties]
+      - optional:file:${user.dir}/.env[.properties]
+      - optional:file:${user.dir}/../.env[.properties]
+      - optional:file:${user.dir}/RuoYi-Vue/.env[.properties]
   # 资源信息
   messages:
     # 国际化资源文件路径
@@ -90,6 +98,19 @@ spring:
         max-active: 8
         # #连接池最大阻塞等待时间（使用负值表示没有限制）
         max-wait: -1ms
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/association_chat
+
+ai:
+  chat:
+    enabled: ${AI_CHAT_ENABLED:true}
+    api-url: ${AI_CHAT_API_URL:https://openrouter.ai/api/v1/chat/completions}
+    api-key: ${AI_CHAT_API_KEY:${OPENROUTER_API_KEY:YOUR_API_KEY}}
+    model: ${AI_CHAT_MODEL:google/gemini-3-flash-preview}
+    max-tokens: ${AI_CHAT_MAX_TOKENS:1024}
+    temperature: ${AI_CHAT_TEMPERATURE:0.7}
+    reasoning-enabled: ${AI_CHAT_REASONING_ENABLED:true}
 
 # 日志配置（统一在logback.xml中管理）
 # 注意：Spring Boot 3.0 建议使用logback.xml统一管理日志配置

@@ -30,6 +30,7 @@
         <poi.version>5.2.5</poi.version>
         <velocity.version>2.3</velocity.version>
         <jwt.version>0.12.5</jwt.version>
+        <okhttp.version>4.12.0</okhttp.version>
         <!-- override dependency version -->
         <tomcat.version>10.1.30</tomcat.version>
         <logback.version>1.4.14</logback.version>
@@ -204,6 +205,18 @@
                 <groupId>com.ruoyi</groupId>
                 <artifactId>ruoyi-user</artifactId>
                 <version>${ruoyi.version}</version>
+            </dependency>
+
+            <!-- OkHttp (调用外部AI API) -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp-sse</artifactId>
+                <version>${okhttp.version}</version>
             </dependency>
 
         </dependencies>

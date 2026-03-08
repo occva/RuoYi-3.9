@@ -14,6 +14,7 @@
         <result property="endTime" column="end_time"/>
         <result property="registrationStart" column="registration_start"/>
         <result property="registrationEnd" column="registration_end"/>
+        <result property="registrationTime" column="registration_time"/>
         <result property="maxParticipants" column="max_participants"/>
         <result property="currentParticipants" column="current_participants"/>
         <result property="status" column="status"/>
@@ -64,7 +65,12 @@
     </select>
 
     <select id="selectMyRegisteredActivities" resultMap="ClubActivityResult">
-        <include refid="selectClubActivityVo"/>
+        select a.activity_id, a.club_id, a.activity_title, a.activity_type, a.description, a.cover_url, a.location,
+               a.start_time, a.end_time, a.registration_start, a.registration_end, r.registration_time,
+               a.max_participants, a.current_participants, a.status, a.organizer, a.contact_info,
+               a.is_public, a.view_count, a.del_flag, a.create_time, a.remark, c.club_name
+        from club_activity a
+        left join club c on a.club_id = c.club_id
         left join club_activity_registration r on r.activity_id = a.activity_id
         <where>
             a.del_flag = '0'

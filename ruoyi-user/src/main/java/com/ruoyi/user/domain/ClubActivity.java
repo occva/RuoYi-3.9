@@ -34,6 +34,10 @@ public class ClubActivity extends BaseEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date registrationEnd;
 
+    /** 当前用户报名时间（仅“我报名的活动”场景有值） */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date registrationTime;
+
     private Integer maxParticipants;
     private Integer currentParticipants;
     private String status;
@@ -71,6 +75,8 @@ public class ClubActivity extends BaseEntity {
     public void setRegistrationStart(Date registrationStart) { this.registrationStart = registrationStart; }
     public Date getRegistrationEnd() { return registrationEnd; }
     public void setRegistrationEnd(Date registrationEnd) { this.registrationEnd = registrationEnd; }
+    public Date getRegistrationTime() { return registrationTime; }
+    public void setRegistrationTime(Date registrationTime) { this.registrationTime = registrationTime; }
     public Integer getMaxParticipants() { return maxParticipants; }
     public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
     public Integer getCurrentParticipants() { return currentParticipants; }

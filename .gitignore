@@ -75,3 +75,8 @@ Thumbs.db
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+# Env secrets
+.env
+.env.*
+!.env.example

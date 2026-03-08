@@ -53,6 +53,13 @@ public class ClubActivity extends BaseEntity {
     /** 当前登录用户是否已报名（非数据库字段） */
     private Boolean hasRegistered;
 
+    /** 当前登录用户是否已签到（非数据库字段） */
+    private Boolean hasCheckedIn;
+
+    /** 当前登录用户签到时间（非数据库字段） */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date myCheckInTime;
+
     public Long getActivityId() { return activityId; }
     public void setActivityId(Long activityId) { this.activityId = activityId; }
     public Long getClubId() { return clubId; }
@@ -97,4 +104,8 @@ public class ClubActivity extends BaseEntity {
     public void setClubName(String clubName) { this.clubName = clubName; }
     public Boolean getHasRegistered() { return hasRegistered; }
     public void setHasRegistered(Boolean hasRegistered) { this.hasRegistered = hasRegistered; }
+    public Boolean getHasCheckedIn() { return hasCheckedIn; }
+    public void setHasCheckedIn(Boolean hasCheckedIn) { this.hasCheckedIn = hasCheckedIn; }
+    public Date getMyCheckInTime() { return myCheckInTime; }
+    public void setMyCheckInTime(Date myCheckInTime) { this.myCheckInTime = myCheckInTime; }
 }

@@ -39,6 +39,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="activityId != null "> and r.activity_id = #{activityId}</if>
             <if test="clubId != null "> and r.club_id = #{clubId}</if>
             <if test="userId != null "> and r.user_id = #{userId}</if>
+            <if test="activityTitle != null and activityTitle != ''"> and a.activity_title like concat('%', #{activityTitle}, '%')</if>
             <if test="nickName != null  and nickName != ''"> and r.nick_name like concat('%', #{nickName}, '%')</if>
             <if test="status != null  and status != ''"> and r.status = #{status}</if>
             <if test="checkInStatus != null  and checkInStatus != ''"> and r.check_in_status = #{checkInStatus}</if>
@@ -47,12 +48,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
             </if>
         </where>
-        order by r.registration_time desc
+        <choose>
+            <when test="params != null and params.sortMode == 'CHECKIN_LATEST'">
+                order by
+                    case when r.check_in_status = '1' then 0 else 1 end asc,
+                    r.check_in_time desc,
+                    r.registration_time desc
+            </when>
+            <otherwise>
+                order by r.registration_time desc
+            </otherwise>
+        </choose>
     </select>
     
     <select id="selectClubActivityRegistrationById" parameterType="Long" resultMap="ClubActivityRegistrationResult">
         <include refid="selectClubActivityRegistrationVo"/>
         where r.registration_id = #{registrationId}
+          and r.del_flag = '0'
     </select>
         
     <insert id="insertClubActivityRegistration" parameterType="com.ruoyi.user.domain.ClubActivityRegistration" useGeneratedKeys="true" keyProperty="registrationId">

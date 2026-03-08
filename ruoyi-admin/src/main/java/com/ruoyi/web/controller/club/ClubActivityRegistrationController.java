@@ -35,6 +35,8 @@ public class ClubActivityRegistrationController extends BaseController {
     @PreAuthorize("@ss.hasPermi('club:registration:list')")
     @GetMapping("/list")
     public TableDataInfo list(ClubActivityRegistration registration) {
+        // 签到管理列表按签到时间排序：已签到在前，且最新签到优先
+        registration.getParams().put("sortMode", "CHECKIN_LATEST");
         startPage();
         List<ClubActivityRegistration> list = clubActivityRegistrationService
                 .selectClubActivityRegistrationList(registration);
@@ -72,8 +74,15 @@ public class ClubActivityRegistrationController extends BaseController {
         if (registration == null) {
             return error("报名记录不存在");
         }
+        if ("2".equals(registration.getStatus())) {
+            return error("该报名记录已取消，无法签到");
+        }
+        if ("1".equals(registration.getCheckInStatus())) {
+            return success("该成员已签到");
+        }
         registration.setCheckInStatus("1"); // 已签到
         registration.setCheckInTime(new java.util.Date());
+        registration.setStatus("1"); // 已参加
         return toAjax(clubActivityRegistrationService.updateClubActivityRegistration(registration));
     }
 

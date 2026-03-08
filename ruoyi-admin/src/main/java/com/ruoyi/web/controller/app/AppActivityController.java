@@ -85,7 +85,10 @@ public class AppActivityController extends BaseController {
             return error("活动不存在或已删除");
         }
         Long userId = resolveCurrentUserIdSafely();
-        activity.setHasRegistered(isUserRegistered(activityId, userId));
+        ClubActivityRegistration myReg = getUserActiveRegistration(activityId, userId);
+        activity.setHasRegistered(myReg != null);
+        activity.setHasCheckedIn(myReg != null && "1".equals(myReg.getCheckInStatus()));
+        activity.setMyCheckInTime(myReg != null ? myReg.getCheckInTime() : null);
         return success(activity);
     }
 
@@ -111,15 +114,17 @@ public class AppActivityController extends BaseController {
         ClubActivityRegistration query = new ClubActivityRegistration();
         query.setActivityId(activityId);
         query.setDelFlag("0");
-        query.setStatus("0");
         List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
-        List<Map<String, Object>> result = records.stream().map(item -> {
+        List<Map<String, Object>> result = records.stream()
+                .filter(item -> !"2".equals(item.getStatus()))
+                .map(item -> {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("registrationId", item.getRegistrationId());
             row.put("userId", item.getUserId());
             row.put("userName", item.getUserName());
             row.put("nickName", item.getNickName());
             row.put("registrationTime", item.getRegistrationTime());
+            row.put("checkInStatus", item.getCheckInStatus());
             row.put("avatar", item.getAvatar());
             return row;
         }).collect(Collectors.toList());
@@ -261,6 +266,55 @@ public class AppActivityController extends BaseController {
         return success("已取消报名");
     }
 
+    /**
+     * 用户端活动签到
+     */
+    @PostMapping("/checkin/{activityId:\\d+}")
+    public AjaxResult checkin(@PathVariable Long activityId) {
+        ClubActivity activity = clubActivityService.selectClubActivityById(activityId);
+        if (activity == null || "2".equals(activity.getDelFlag())) {
+            return error("活动不存在或已删除");
+        }
+
+        if ("2".equals(activity.getStatus()) || "3".equals(activity.getStatus())) {
+            return error("活动已结束或取消，无法签到");
+        }
+
+        Date now = new Date();
+        if (activity.getStartTime() != null && now.before(activity.getStartTime())) {
+            return error("活动尚未开始，暂不可签到");
+        }
+        if (activity.getEndTime() != null && now.after(activity.getEndTime())) {
+            return error("活动已结束，无法签到");
+        }
+
+        SysUser currentUser;
+        try {
+            currentUser = getLoginUser().getUser();
+        } catch (Exception e) {
+            return error("请先登录");
+        }
+        Long userId = currentUser.getUserId();
+
+        ClubActivityRegistration registration = getUserActiveRegistration(activityId, userId);
+        if (registration == null) {
+            return error("您尚未报名该活动");
+        }
+        if ("2".equals(registration.getStatus())) {
+            return error("该报名记录已取消，无法签到");
+        }
+        if ("1".equals(registration.getCheckInStatus())) {
+            return success("您已签到");
+        }
+
+        registration.setCheckInStatus("1");
+        registration.setCheckInTime(now);
+        registration.setStatus("1");
+        registration.setUpdateBy(getUsername());
+        int rows = registrationService.updateClubActivityRegistration(registration);
+        return rows > 0 ? success("签到成功") : error("签到失败，请稍后重试");
+    }
+
     private Long resolveCurrentUserIdSafely() {
         try {
             return getUserId();
@@ -270,15 +324,7 @@ public class AppActivityController extends BaseController {
     }
 
     private boolean isUserRegistered(Long activityId, Long userId) {
-        if (activityId == null || userId == null) {
-            return false;
-        }
-        ClubActivityRegistration query = new ClubActivityRegistration();
-        query.setActivityId(activityId);
-        query.setUserId(userId);
-        query.setDelFlag("0");
-        List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
-        return records != null && records.stream().anyMatch(item -> !"2".equals(item.getStatus()));
+        return getUserActiveRegistration(activityId, userId) != null;
     }
 
     private boolean isUserActiveClubMember(Long clubId, Long userId) {
@@ -293,7 +339,10 @@ public class AppActivityController extends BaseController {
             return;
         }
         if (userId == null) {
-            activities.forEach(item -> item.setHasRegistered(false));
+            activities.forEach(item -> {
+                item.setHasRegistered(false);
+                item.setHasCheckedIn(false);
+            });
             return;
         }
 
@@ -303,14 +352,39 @@ public class AppActivityController extends BaseController {
         query.setDelFlag("0");
         List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
         if (records == null || records.isEmpty()) {
-            activities.forEach(item -> item.setHasRegistered(false));
+            activities.forEach(item -> {
+                item.setHasRegistered(false);
+                item.setHasCheckedIn(false);
+            });
             return;
         }
         Set<Long> registeredActivityIds = records.stream()
                 .filter(item -> !"2".equals(item.getStatus()))
                 .map(ClubActivityRegistration::getActivityId)
                 .collect(Collectors.toSet());
+        Set<Long> checkedInActivityIds = records.stream()
+                .filter(item -> !"2".equals(item.getStatus()) && "1".equals(item.getCheckInStatus()))
+                .map(ClubActivityRegistration::getActivityId)
+                .collect(Collectors.toSet());
 
-        activities.forEach(item -> item.setHasRegistered(registeredActivityIds.contains(item.getActivityId())));
+        activities.forEach(item -> {
+            item.setHasRegistered(registeredActivityIds.contains(item.getActivityId()));
+            item.setHasCheckedIn(checkedInActivityIds.contains(item.getActivityId()));
+        });
+    }
+
+    private ClubActivityRegistration getUserActiveRegistration(Long activityId, Long userId) {
+        if (activityId == null || userId == null) {
+            return null;
+        }
+        ClubActivityRegistration query = new ClubActivityRegistration();
+        query.setActivityId(activityId);
+        query.setUserId(userId);
+        query.setDelFlag("0");
+        List<ClubActivityRegistration> records = registrationService.selectClubActivityRegistrationList(query);
+        if (records == null || records.isEmpty()) {
+            return null;
+        }
+        return records.stream().filter(item -> !"2".equals(item.getStatus())).findFirst().orElse(null);
     }
 }

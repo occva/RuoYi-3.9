@@ -50,7 +50,18 @@
                 <foreach collection="params.clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
             </if>
         </where>
-        order by a.start_time desc
+        order by
+            case
+                when a.status = '0' then 0
+                when a.status = '1' then 1
+                when a.status = '2' then 2
+                when a.status = '3' then 3
+                else 4
+            end asc,
+            case when a.status = '0' then a.start_time end asc,
+            case when a.status = '1' then a.start_time end desc,
+            case when a.status in ('2', '3') then a.end_time end desc,
+            a.create_time desc
     </select>
 
     <select id="selectClubActivityById" parameterType="Long" resultMap="ClubActivityResult">

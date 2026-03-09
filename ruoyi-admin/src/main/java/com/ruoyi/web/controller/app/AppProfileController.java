@@ -64,6 +64,8 @@ public class AppProfileController extends BaseController {
         currentUser.setNickName(user.getNickName());
         currentUser.setEmail(user.getEmail());
         currentUser.setPhonenumber(user.getPhonenumber());
+        currentUser.setStudentId(user.getStudentId());
+        currentUser.setClassName(user.getClassName());
         currentUser.setSex(user.getSex());
         if (StringUtils.isNotEmpty(user.getPhonenumber()) && !userService.checkPhoneUnique(currentUser)) {
             return error("修改用户'" + loginUser.getUsername() + "'失败，手机号码已存在");

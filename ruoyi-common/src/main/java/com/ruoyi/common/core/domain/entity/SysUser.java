@@ -50,6 +50,14 @@ public class SysUser extends BaseEntity
     @Excel(name = "手机号码", cellType = ColumnType.TEXT)
     private String phonenumber;
 
+    /** 学号 */
+    @Excel(name = "学号")
+    private String studentId;
+
+    /** 班级 */
+    @Excel(name = "班级")
+    private String className;
+
     /** 用户性别 */
     @Excel(name = "用户性别", readConverterExp = "0=男,1=女,2=未知")
     private String sex;
@@ -178,6 +186,28 @@ public class SysUser extends BaseEntity
     public void setPhonenumber(String phonenumber)
     {
         this.phonenumber = phonenumber;
+    }
+
+    @Size(min = 0, max = 50, message = "学号长度不能超过50个字符")
+    public String getStudentId()
+    {
+        return studentId;
+    }
+
+    public void setStudentId(String studentId)
+    {
+        this.studentId = studentId;
+    }
+
+    @Size(min = 0, max = 50, message = "班级长度不能超过50个字符")
+    public String getClassName()
+    {
+        return className;
+    }
+
+    public void setClassName(String className)
+    {
+        this.className = className;
     }
 
     public String getSex()
@@ -320,6 +350,8 @@ public class SysUser extends BaseEntity
             .append("nickName", getNickName())
             .append("email", getEmail())
             .append("phonenumber", getPhonenumber())
+            .append("studentId", getStudentId())
+            .append("className", getClassName())
             .append("sex", getSex())
             .append("avatar", getAvatar())
             .append("password", getPassword())

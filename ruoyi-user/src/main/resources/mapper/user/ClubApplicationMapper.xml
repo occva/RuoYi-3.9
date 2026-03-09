@@ -84,7 +84,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id,</if>
             <if test="userName != null and userName != ''">user_name,</if>
             <if test="nickName != null">nick_name,</if>
-            <if test="studentId != null and studentId != ''">student_id,</if>
+            <if test="studentId != null">student_id,</if>
             <if test="realName != null and realName != ''">real_name,</if>
             <if test="gender != null">gender,</if>
             <if test="major != null">major,</if>
@@ -114,7 +114,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">#{userId},</if>
             <if test="userName != null and userName != ''">#{userName},</if>
             <if test="nickName != null">#{nickName},</if>
-            <if test="studentId != null and studentId != ''">#{studentId},</if>
+            <if test="studentId != null">#{studentId},</if>
             <if test="realName != null and realName != ''">#{realName},</if>
             <if test="gender != null">#{gender},</if>
             <if test="major != null">#{major},</if>
@@ -148,7 +148,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id = #{userId},</if>
             <if test="userName != null and userName != ''">user_name = #{userName},</if>
             <if test="nickName != null">nick_name = #{nickName},</if>
-            <if test="studentId != null and studentId != ''">student_id = #{studentId},</if>
+            <if test="studentId != null">student_id = #{studentId},</if>
             <if test="realName != null and realName != ''">real_name = #{realName},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="major != null">major = #{major},</if>

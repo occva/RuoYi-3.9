@@ -336,6 +336,8 @@ public class AppClubController extends BaseController {
         application.setUserId(userId);
         application.setUserName(currentUser.getUserName());
         application.setNickName(currentUser.getNickName());
+        application.setStudentId(currentUser.getStudentId() == null ? "" : currentUser.getStudentId());
+        application.setClassName(currentUser.getClassName() == null ? "" : currentUser.getClassName());
         application.setPhone(currentUser.getPhonenumber());
         application.setEmail(currentUser.getEmail());
         application.setStatus("0");

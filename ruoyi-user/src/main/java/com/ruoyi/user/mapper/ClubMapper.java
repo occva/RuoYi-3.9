@@ -30,6 +30,11 @@ public interface ClubMapper {
         int incrementViewCount(@Param("clubId") Long clubId);
 
         /**
+         * 根据收藏关系表精确回刷收藏数
+         */
+        int refreshFavoriteCount(@Param("clubId") Long clubId);
+
+        /**
          * 查询热门社团
          */
         List<Club> selectPopularClubs(int limit);

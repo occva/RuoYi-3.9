@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.ruoyi.user.mapper.ClubMapper;
 import com.ruoyi.user.mapper.ClubFavoriteMapper;
 import com.ruoyi.user.domain.ClubFavorite;
 import com.ruoyi.user.service.IClubFavoriteService;
@@ -19,6 +21,9 @@ import com.ruoyi.common.utils.DateUtils;
 public class ClubFavoriteServiceImpl implements IClubFavoriteService {
     @Autowired
     private ClubFavoriteMapper clubFavoriteMapper;
+
+    @Autowired
+    private ClubMapper clubMapper;
 
     /**
      * 查询社团收藏
@@ -88,10 +93,12 @@ public class ClubFavoriteServiceImpl implements IClubFavoriteService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean toggleFavorite(Long userId, Long clubId) {
         // Fast path: if favorite exists, delete in one SQL and return "unfavorited".
         int deleted = clubFavoriteMapper.deleteClubFavoriteByUserAndClub(userId, clubId);
         if (deleted > 0) {
+            syncClubFavoriteCount(clubId);
             return false;
         }
 
@@ -102,9 +109,11 @@ public class ClubFavoriteServiceImpl implements IClubFavoriteService {
         fav.setCreateTime(new Date());
         try {
             clubFavoriteMapper.insertClubFavorite(fav);
+            syncClubFavoriteCount(clubId);
             return true;
         } catch (DuplicateKeyException e) {
             // Concurrent add request already inserted it.
+            syncClubFavoriteCount(clubId);
             return true;
         }
     }
@@ -112,5 +121,11 @@ public class ClubFavoriteServiceImpl implements IClubFavoriteService {
     @Override
     public boolean isFavorite(Long userId, Long clubId) {
         return clubFavoriteMapper.checkFavorite(userId, clubId) != null;
+    }
+
+    private void syncClubFavoriteCount(Long clubId) {
+        if (clubId != null) {
+            clubMapper.refreshFavoriteCount(clubId);
+        }
     }
 }

@@ -1,0 +1,6 @@
+ruoyi:
+  profile: ${RUOYI_PROFILE_PATH:/opt/ruoyi/upload}
+
+logging:
+  file:
+    path: ${RUOYI_LOG_PATH:/var/log/ruoyi}

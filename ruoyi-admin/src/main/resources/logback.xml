@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!-- 日志存放路径 -->
-    <property name="log.path" value="D:/new/atguigu/logs" />
+    <property name="log.path" value="${LOG_PATH:-logs}" />
 
     <!-- 优化后的日志输出格式 - Spring Boot 3.0 推荐格式 -->
     <property name="log.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
@@ -86,30 +86,9 @@
         </encoder>
     </appender>
 	
-	<!-- Spring Boot 3.0 优化的日志级别配置 -->
-	<!-- 系统模块日志级别控制 - 开发环境使用DEBUG级别 -->
-	<logger name="com.ruoyi" level="DEBUG" />
-	<!-- Spring框架日志级别控制 - 减少冗余日志 -->
-	<logger name="org.springframework" level="WARN" />
-	<!-- Spring Web日志级别 -->
-	<logger name="org.springframework.web" level="INFO" />
-	<!-- Hibernate日志级别 -->
-	<logger name="org.hibernate" level="WARN" />
-	<!-- Tomcat日志级别 -->
-	<logger name="org.apache.tomcat" level="INFO" />
-	<!-- Druid连接池日志级别 -->
-	<logger name="com.alibaba.druid" level="INFO" />
-	<!-- MyBatis SQL日志 - 生产环境建议设为WARN -->
-	<logger name="com.ruoyi.*.mapper" level="DEBUG" />
-	<logger name="org.mybatis" level="WARN" />
-
-	<!-- 根日志级别 - 使用异步控制台输出提高性能 -->
-	<root level="INFO">
-		<appender-ref ref="async_console" />
-	</root>
-	
-	<!--系统操作日志-->
-    <root level="info">
+	<!-- 根日志级别 - 具体包级别由 application.yml 中的 logging.level 统一管理 -->
+    <root level="INFO">
+        <appender-ref ref="async_console" />
         <appender-ref ref="file_info" />
         <appender-ref ref="file_error" />
     </root>
@@ -118,4 +97,4 @@
     <logger name="sys-user" level="info">
         <appender-ref ref="sys-user"/>
     </logger>
-</configuration> 
+</configuration>

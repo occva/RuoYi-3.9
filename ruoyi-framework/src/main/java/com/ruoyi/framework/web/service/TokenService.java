@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,19 @@ public class TokenService
 
     @Autowired
     private RedisCache redisCache;
+
+    @PostConstruct
+    public void validateTokenSecret()
+    {
+        if (StringUtils.isEmpty(secret))
+        {
+            throw new IllegalStateException("token.secret 未配置，请通过 RUOYI_TOKEN_SECRET 提供至少 32 个字符的密钥");
+        }
+        if (secret.trim().length() < 32)
+        {
+            throw new IllegalStateException("token.secret 长度不足 32 个字符，请通过 RUOYI_TOKEN_SECRET 提供更强的密钥");
+        }
+    }
 
     /**
      * 获取用户身份信息

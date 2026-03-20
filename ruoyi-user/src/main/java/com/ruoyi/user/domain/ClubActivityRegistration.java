@@ -23,6 +23,7 @@ public class ClubActivityRegistration extends BaseEntity {
     private Long activityId;
 
     /** 社团ID */
+    @Excel(name = "社团ID")
     private Long clubId;
 
     /** 用户ID */
@@ -67,7 +68,9 @@ public class ClubActivityRegistration extends BaseEntity {
     private String delFlag;
 
     // 扩展字段
+    @Excel(name = "活动标题")
     private String activityTitle;
+    @Excel(name = "所属社团")
     private String clubName;
     private String avatar;
 

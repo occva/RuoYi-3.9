@@ -1,9 +1,11 @@
 package com.ruoyi.web.controller.club;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +18,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.user.domain.ClubActivityRegistration;
 import com.ruoyi.user.service.IClubActivityRegistrationService;
+import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
@@ -41,6 +44,21 @@ public class ClubActivityRegistrationController extends BaseController {
         List<ClubActivityRegistration> list = clubActivityRegistrationService
                 .selectClubActivityRegistrationList(registration);
         return getDataTable(list);
+    }
+
+    /**
+     * 导出活动报名列表
+     */
+    @PreAuthorize("@ss.hasAnyPermi('club:registration:export,club:registration:list')")
+    @Log(title = "活动报名", businessType = BusinessType.EXPORT)
+    @PostMapping("/export")
+    public void export(HttpServletResponse response, ClubActivityRegistration registration) {
+        registration.getParams().put("sortMode", "CHECKIN_LATEST");
+        List<ClubActivityRegistration> list = clubActivityRegistrationService
+                .selectClubActivityRegistrationList(registration);
+        ExcelUtil<ClubActivityRegistration> util = new ExcelUtil<ClubActivityRegistration>(
+                ClubActivityRegistration.class);
+        util.exportExcel(response, list, "活动签到数据");
     }
 
     /**

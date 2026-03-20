@@ -21,6 +21,7 @@ import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -53,6 +54,7 @@ import okhttp3.Response;
  * AI chat service implementation.
  */
 @Service
+@ConditionalOnProperty(prefix = "ai.chat", name = "enabled", havingValue = "true")
 public class AiChatServiceImpl implements IAiChatService {
     private static final Logger log = LoggerFactory.getLogger(AiChatServiceImpl.class);
     private static final int CONTEXT_MESSAGE_LIMIT = 10;

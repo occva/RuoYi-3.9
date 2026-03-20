@@ -7,7 +7,7 @@ ruoyi:
   # 版权年份
   copyrightYear: 2026
   # 文件挂载路径，包含用户头像、上传等资料。支持环境变量覆盖
-  profile: ${RUOYI_PROFILE_PATH:D:/new/atguigu/Association/uploadPath}
+  profile: ${RUOYI_PROFILE_PATH:${user.dir}/uploadPath}
   # 获取ip地址开关
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
@@ -33,9 +33,11 @@ server:
 
 # 日志配置
 logging:
+  file:
+    path: ${RUOYI_LOG_PATH:${user.dir}/logs}
   level:
-    com.ruoyi: debug
-    org.springframework: warn
+    com.ruoyi: ${RUOYI_LOG_LEVEL:info}
+    org.springframework: ${RUOYI_SPRING_LOG_LEVEL:warn}
 
 # 用户配置
 user:
@@ -79,13 +81,13 @@ spring:
   # redis 配置
   redis:
     # 地址
-    host: localhost
+    host: ${RUOYI_REDIS_HOST:127.0.0.1}
     # 端口，默认为6379
-    port: 6379
+    port: ${RUOYI_REDIS_PORT:6379}
     # 数据库索引
-    database: 0
+    database: ${RUOYI_REDIS_DATABASE:0}
     # 密码
-    password:
+    password: ${RUOYI_REDIS_PASSWORD:}
     # 连接超时时间
     timeout: 10s
     lettuce:
@@ -100,13 +102,13 @@ spring:
         max-wait: -1ms
   data:
     mongodb:
-      uri: mongodb://localhost:27017/association_chat
+      uri: ${RUOYI_MONGODB_URI:}
 
 ai:
   chat:
-    enabled: ${AI_CHAT_ENABLED:true}
+    enabled: ${AI_CHAT_ENABLED:false}
     api-url: ${AI_CHAT_API_URL:https://openrouter.ai/api/v1/chat/completions}
-    api-key: ${AI_CHAT_API_KEY:${OPENROUTER_API_KEY:YOUR_API_KEY}}
+    api-key: ${AI_CHAT_API_KEY:${OPENROUTER_API_KEY:}}
     model: ${AI_CHAT_MODEL:google/gemini-3-flash-preview}
     max-tokens: ${AI_CHAT_MAX_TOKENS:1024}
     temperature: ${AI_CHAT_TEMPERATURE:0.7}
@@ -124,7 +126,7 @@ token:
   # 令牌自定义标识
   header: Authorization
   # 令牌密钥（至少32个字符，256位）
-  secret: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+  secret: ${RUOYI_TOKEN_SECRET:}
   # 令牌有效期（默认30分钟）
   expireTime: 8640
 

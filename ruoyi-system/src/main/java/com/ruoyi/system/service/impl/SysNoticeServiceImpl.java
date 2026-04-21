@@ -43,6 +43,17 @@ public class SysNoticeServiceImpl implements ISysNoticeService
     }
 
     /**
+     * 查询最新启用的全站公告
+     *
+     * @return 公告信息
+     */
+    @Override
+    public SysNotice selectLatestOpenNotice()
+    {
+        return noticeMapper.selectLatestOpenNotice();
+    }
+
+    /**
      * 新增公告
      * 
      * @param notice 公告信息

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.user.mapper.AppNotificationMapper">
+
+    <resultMap id="AppNotificationItemResult" type="com.ruoyi.user.domain.AppNotificationItem">
+        <result property="noticeSource" column="notice_source" />
+        <result property="noticeId" column="notice_id" />
+        <result property="clubId" column="club_id" />
+        <result property="clubName" column="club_name" />
+        <result property="noticeTitle" column="notice_title" />
+        <result property="noticeContent" column="notice_content" />
+        <result property="noticeType" column="notice_type" />
+        <result property="coverUrl" column="cover_url" />
+        <result property="publisherName" column="publisher_name" />
+        <result property="publishTime" column="publish_time" />
+        <result property="readStatus" column="read_status" />
+    </resultMap>
+
+    <sql id="notificationUnionSql">
+        select
+            convert('system' using utf8mb4) collate utf8mb4_general_ci as notice_source,
+            n.notice_id,
+            null as club_id,
+            convert('全站公告' using utf8mb4) collate utf8mb4_general_ci as club_name,
+            n.notice_title collate utf8mb4_general_ci as notice_title,
+            cast(n.notice_content as char character set utf8mb4) collate utf8mb4_general_ci as notice_content,
+            cast(null as char character set utf8mb4) collate utf8mb4_general_ci as cover_url,
+            n.notice_type collate utf8mb4_general_ci as notice_type,
+            n.create_by collate utf8mb4_general_ci as publisher_name,
+            n.create_time as publish_time,
+            (case when r.notice_id is null then '0' else '1' end) collate utf8mb4_general_ci as read_status
+        from sys_notice n
+        left join app_notice_read r
+            on r.user_id = #{userId}
+           and r.notice_source = 'system'
+           and r.notice_id = n.notice_id
+        where n.status = '0'
+
+        union all
+
+        select
+            convert('club' using utf8mb4) collate utf8mb4_general_ci as notice_source,
+            cn.notice_id,
+            cn.club_id,
+            c.club_name collate utf8mb4_general_ci as club_name,
+            cn.notice_title collate utf8mb4_general_ci as notice_title,
+            cn.notice_content collate utf8mb4_general_ci as notice_content,
+            cn.cover_url collate utf8mb4_general_ci as cover_url,
+            cn.notice_type collate utf8mb4_general_ci as notice_type,
+            cn.publisher_name collate utf8mb4_general_ci as publisher_name,
+            ifnull(cn.publish_time, cn.create_time) as publish_time,
+            (case when r.notice_id is null then '0' else '1' end) collate utf8mb4_general_ci as read_status
+        from club_notice cn
+        inner join club c
+            on c.club_id = cn.club_id
+           and c.del_flag = '0'
+           and c.status = '0'
+        left join app_notice_read r
+            on r.user_id = #{userId}
+           and r.notice_source = 'club'
+           and r.notice_id = cn.notice_id
+        where cn.status = '1'
+          and cn.del_flag = '0'
+          and exists (
+              select 1
+              from club_member cm
+              where cm.club_id = cn.club_id
+                and cm.user_id = #{userId}
+                and cm.status = '0'
+                and cm.del_flag = '0'
+          )
+    </sql>
+
+    <select id="selectNotificationList" resultMap="AppNotificationItemResult">
+        select *
+        from (
+            <include refid="notificationUnionSql" />
+        ) t
+        order by t.publish_time desc, t.notice_id desc
+    </select>
+
+    <select id="selectUnreadCount" resultType="long">
+        select count(1)
+        from (
+            <include refid="notificationUnionSql" />
+        ) t
+        where t.read_status = '0'
+    </select>
+
+    <select id="countAccessibleNotification" resultType="int">
+        select count(1)
+        from (
+            select notice_id, convert('system' using utf8mb4) collate utf8mb4_general_ci as notice_source
+            from sys_notice
+            where status = '0'
+
+            union all
+
+            select cn.notice_id, convert('club' using utf8mb4) collate utf8mb4_general_ci as notice_source
+            from club_notice cn
+            where cn.status = '1'
+              and cn.del_flag = '0'
+              and exists (
+                  select 1
+                  from club_member cm
+                  where cm.club_id = cn.club_id
+                    and cm.user_id = #{userId}
+                    and cm.status = '0'
+                    and cm.del_flag = '0'
+              )
+        ) t
+        where t.notice_source = #{noticeSource}
+          and t.notice_id = #{noticeId}
+    </select>
+
+    <insert id="insertReadRecord">
+        insert ignore into app_notice_read (
+            user_id,
+            notice_source,
+            notice_id,
+            read_time,
+            create_time
+        ) values (
+            #{userId},
+            #{noticeSource},
+            #{noticeId},
+            now(),
+            now()
+        )
+    </insert>
+
+    <insert id="insertAllSystemReadRecords">
+        insert ignore into app_notice_read (
+            user_id,
+            notice_source,
+            notice_id,
+            read_time,
+            create_time
+        )
+        select
+            #{userId},
+            'system',
+            n.notice_id,
+            now(),
+            now()
+        from sys_notice n
+        where n.status = '0'
+    </insert>
+
+    <insert id="insertAllClubReadRecords">
+        insert ignore into app_notice_read (
+            user_id,
+            notice_source,
+            notice_id,
+            read_time,
+            create_time
+        )
+        select
+            #{userId},
+            'club',
+            cn.notice_id,
+            now(),
+            now()
+        from club_notice cn
+        inner join club c
+            on c.club_id = cn.club_id
+           and c.del_flag = '0'
+           and c.status = '0'
+        where cn.status = '1'
+          and cn.del_flag = '0'
+          and exists (
+              select 1
+              from club_member cm
+              where cm.club_id = cn.club_id
+                and cm.user_id = #{userId}
+                and cm.status = '0'
+                and cm.del_flag = '0'
+          )
+    </insert>
+</mapper>

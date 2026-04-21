@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.system;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,10 +20,11 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SysNotice;
 import com.ruoyi.system.service.ISysNoticeService;
+import com.ruoyi.web.socket.notification.AppNotificationWebSocketHandler;
 
 /**
  * 公告 信息操作处理
- * 
+ *
  * @author ruoyi
  */
 @RestController
@@ -31,6 +33,9 @@ public class SysNoticeController extends BaseController
 {
     @Autowired
     private ISysNoticeService noticeService;
+
+    @Autowired
+    private AppNotificationWebSocketHandler appNotificationWebSocketHandler;
 
     /**
      * 获取通知公告列表
@@ -63,7 +68,12 @@ public class SysNoticeController extends BaseController
     public AjaxResult add(@Validated @RequestBody SysNotice notice)
     {
         notice.setCreateBy(getUsername());
-        return toAjax(noticeService.insertNotice(notice));
+        AjaxResult ajax = toAjax(noticeService.insertNotice(notice));
+        if (ajax.isSuccess() && isSystemNoticeVisible(notice.getStatus()))
+        {
+            appNotificationWebSocketHandler.sendRefreshToAll();
+        }
+        return ajax;
     }
 
     /**
@@ -74,8 +84,14 @@ public class SysNoticeController extends BaseController
     @PutMapping
     public AjaxResult edit(@Validated @RequestBody SysNotice notice)
     {
+        SysNotice existed = noticeService.selectNoticeById(notice.getNoticeId());
         notice.setUpdateBy(getUsername());
-        return toAjax(noticeService.updateNotice(notice));
+        AjaxResult ajax = toAjax(noticeService.updateNotice(notice));
+        if (ajax.isSuccess() && shouldRefreshSystemNotice(existed, notice))
+        {
+            appNotificationWebSocketHandler.sendRefreshToAll();
+        }
+        return ajax;
     }
 
     /**
@@ -86,6 +102,46 @@ public class SysNoticeController extends BaseController
     @DeleteMapping("/{noticeIds}")
     public AjaxResult remove(@PathVariable Long[] noticeIds)
     {
-        return toAjax(noticeService.deleteNoticeByIds(noticeIds));
+        List<SysNotice> existedNotices = new ArrayList<>();
+        for (Long noticeId : noticeIds)
+        {
+            SysNotice notice = noticeService.selectNoticeById(noticeId);
+            if (notice != null)
+            {
+                existedNotices.add(notice);
+            }
+        }
+        AjaxResult ajax = toAjax(noticeService.deleteNoticeByIds(noticeIds));
+        if (ajax.isSuccess() && hasVisibleSystemNotice(existedNotices))
+        {
+            appNotificationWebSocketHandler.sendRefreshToAll();
+        }
+        return ajax;
+    }
+
+    private boolean shouldRefreshSystemNotice(SysNotice existed, SysNotice current)
+    {
+        String currentStatus = current != null && current.getStatus() != null
+                ? current.getStatus()
+                : existed != null ? existed.getStatus() : null;
+        return isSystemNoticeVisible(existed != null ? existed.getStatus() : null)
+                || isSystemNoticeVisible(currentStatus);
+    }
+
+    private boolean hasVisibleSystemNotice(List<SysNotice> notices)
+    {
+        for (SysNotice notice : notices)
+        {
+            if (isSystemNoticeVisible(notice.getStatus()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSystemNoticeVisible(String status)
+    {
+        return !"1".equals(status);
     }
 }

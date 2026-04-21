@@ -83,6 +83,18 @@ public class TokenService
     {
         // 获取请求携带的令牌
         String token = getToken(request);
+        return getLoginUser(token);
+    }
+
+    /**
+     * 根据原始令牌获取用户身份信息
+     *
+     * @param token 原始token
+     * @return 用户信息
+     */
+    public LoginUser getLoginUser(String token)
+    {
+        token = cleanToken(token);
         if (StringUtils.isNotEmpty(token))
         {
             try
@@ -270,10 +282,14 @@ public class TokenService
      */
     private String getToken(HttpServletRequest request)
     {
-        String token = request.getHeader(header);
+        return cleanToken(request.getHeader(header));
+    }
+
+    private String cleanToken(String token)
+    {
         if (StringUtils.isNotEmpty(token) && token.startsWith(Constants.TOKEN_PREFIX))
         {
-            token = token.replace(Constants.TOKEN_PREFIX, "");
+            return token.replace(Constants.TOKEN_PREFIX, "");
         }
         return token;
     }

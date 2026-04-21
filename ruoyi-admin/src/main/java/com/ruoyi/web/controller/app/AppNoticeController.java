@@ -9,6 +9,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.user.domain.ClubNotice;
 import com.ruoyi.user.service.IClubNoticeService;
+import com.ruoyi.system.service.ISysNoticeService;
 
 /**
  * 社团公告Controller (用户端 - 只读)
@@ -23,6 +24,9 @@ public class AppNoticeController extends BaseController {
     @Autowired
     private IClubNoticeService clubNoticeService;
 
+    @Autowired
+    private ISysNoticeService sysNoticeService;
+
     /**
      * 获取公告列表（分页）
      */
@@ -34,6 +38,14 @@ public class AppNoticeController extends BaseController {
         startPage();
         List<ClubNotice> list = clubNoticeService.selectClubNoticeList(notice);
         return getDataTable(list);
+    }
+
+    /**
+     * 获取最新全站公告
+     */
+    @GetMapping("/system/latest")
+    public AjaxResult latestSystemNotice() {
+        return success(sysNoticeService.selectLatestOpenNotice());
     }
 
     /**

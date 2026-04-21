@@ -1,6 +1,8 @@
 package com.ruoyi.web.controller.club;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +17,13 @@ import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.user.domain.ClubMember;
 import com.ruoyi.user.domain.ClubNotice;
+import com.ruoyi.user.service.IClubMemberService;
 import com.ruoyi.user.service.IClubNoticeService;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.web.socket.notification.AppNotificationWebSocketHandler;
 
 /**
  * 社团公告管理Controller
@@ -30,6 +35,12 @@ import com.ruoyi.common.utils.DateUtils;
 public class ClubNoticeController extends BaseController {
     @Autowired
     private IClubNoticeService clubNoticeService;
+
+    @Autowired
+    private IClubMemberService clubMemberService;
+
+    @Autowired
+    private AppNotificationWebSocketHandler appNotificationWebSocketHandler;
 
     /**
      * 查询社团公告列表
@@ -64,7 +75,11 @@ public class ClubNoticeController extends BaseController {
         if ("1".equals(notice.getStatus())) {
             notice.setPublishTime(DateUtils.getNowDate());
         }
-        return toAjax(clubNoticeService.insertClubNotice(notice));
+        AjaxResult ajax = toAjax(clubNoticeService.insertClubNotice(notice));
+        if (ajax.isSuccess() && isClubNoticeVisible(notice.getStatus())) {
+            pushClubNotificationRefresh(notice.getClubId());
+        }
+        return ajax;
     }
 
     /**
@@ -74,11 +89,21 @@ public class ClubNoticeController extends BaseController {
     @Log(title = "社团公告", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody ClubNotice notice) {
+        ClubNotice existed = clubNoticeService.selectClubNoticeById(notice.getNoticeId());
         notice.setUpdateBy(getUsername());
         if ("1".equals(notice.getStatus()) && notice.getPublishTime() == null) {
             notice.setPublishTime(DateUtils.getNowDate());
         }
-        return toAjax(clubNoticeService.updateClubNotice(notice));
+        AjaxResult ajax = toAjax(clubNoticeService.updateClubNotice(notice));
+        if (ajax.isSuccess()) {
+            Long currentClubId = notice.getClubId() != null ? notice.getClubId() : existed != null ? existed.getClubId() : null;
+            String currentStatus = notice.getStatus() != null ? notice.getStatus() : existed != null ? existed.getStatus() : null;
+            Set<Long> clubIds = collectVisibleClubIds(existed, currentClubId, currentStatus);
+            if (!clubIds.isEmpty()) {
+                pushClubNotificationRefresh(clubIds);
+            }
+        }
+        return ajax;
     }
 
     /**
@@ -88,6 +113,64 @@ public class ClubNoticeController extends BaseController {
     @Log(title = "社团公告", businessType = BusinessType.DELETE)
     @DeleteMapping("/{noticeIds}")
     public AjaxResult remove(@PathVariable Long[] noticeIds) {
-        return toAjax(clubNoticeService.deleteClubNoticeByIds(noticeIds));
+        Set<Long> clubIds = new HashSet<>();
+        for (Long noticeId : noticeIds) {
+            ClubNotice notice = clubNoticeService.selectClubNoticeById(noticeId);
+            if (notice != null && isClubNoticeVisible(notice.getStatus()) && notice.getClubId() != null) {
+                clubIds.add(notice.getClubId());
+            }
+        }
+
+        AjaxResult ajax = toAjax(clubNoticeService.deleteClubNoticeByIds(noticeIds));
+        if (ajax.isSuccess() && !clubIds.isEmpty()) {
+            pushClubNotificationRefresh(clubIds);
+        }
+        return ajax;
+    }
+
+    private void pushClubNotificationRefresh(Long clubId) {
+        if (clubId == null) {
+            return;
+        }
+        pushClubNotificationRefresh(Set.of(clubId));
+    }
+
+    private void pushClubNotificationRefresh(Set<Long> clubIds) {
+        if (clubIds == null || clubIds.isEmpty()) {
+            return;
+        }
+
+        Set<Long> userIds = new HashSet<>();
+        for (Long clubId : clubIds) {
+            if (clubId == null) {
+                continue;
+            }
+            ClubMember query = new ClubMember();
+            query.setClubId(clubId);
+            query.setStatus("0");
+            List<ClubMember> members = clubMemberService.selectClubMemberList(query);
+            for (ClubMember member : members) {
+                if (member.getUserId() != null) {
+                    userIds.add(member.getUserId());
+                }
+            }
+        }
+
+        appNotificationWebSocketHandler.sendRefreshToUsers(userIds);
+    }
+
+    private Set<Long> collectVisibleClubIds(ClubNotice existed, Long currentClubId, String currentStatus) {
+        Set<Long> clubIds = new HashSet<>();
+        if (existed != null && isClubNoticeVisible(existed.getStatus()) && existed.getClubId() != null) {
+            clubIds.add(existed.getClubId());
+        }
+        if (isClubNoticeVisible(currentStatus) && currentClubId != null) {
+            clubIds.add(currentClubId);
+        }
+        return clubIds;
+    }
+
+    private boolean isClubNoticeVisible(String status) {
+        return "1".equals(status);
     }
 }

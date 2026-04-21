@@ -261,6 +261,10 @@
         <if test="endTime != null and endTime != ''">
             AND DATE(create_time) &lt;= DATE(#{endTime})
         </if>
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY status
     </select>
 
@@ -276,15 +280,25 @@
         <if test="endTime != null and endTime != ''">
             AND DATE(create_time) &lt;= DATE(#{endTime})
         </if>
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
     </select>
 
     <!-- 社团统计：今日数据 -->
     <select id="selectClubTodayStats" resultType="java.util.Map">
         SELECT
-            (SELECT count(*) FROM club WHERE del_flag='0' AND DATE(create_time) = CURDATE()) as totalNew,
-            (SELECT count(*) FROM club WHERE del_flag='0' AND status='0' AND DATE(create_time) = CURDATE()) as activeNew,
-            (SELECT count(*) FROM club WHERE del_flag='0' AND status='1' AND DATE(create_time) = CURDATE()) as disabledNew,
-            (SELECT count(*) FROM club WHERE del_flag='0' AND is_recruiting='1' AND DATE(create_time) = CURDATE()) as recruitingNew
+            count(CASE WHEN DATE(create_time) = CURDATE() THEN 1 END) as totalNew,
+            count(CASE WHEN status='0' AND DATE(create_time) = CURDATE() THEN 1 END) as activeNew,
+            count(CASE WHEN status='1' AND DATE(create_time) = CURDATE() THEN 1 END) as disabledNew,
+            count(CASE WHEN is_recruiting='1' AND DATE(create_time) = CURDATE() THEN 1 END) as recruitingNew
+        FROM club
+        WHERE del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
     </select>
 
     <!-- 社团统计：创建趋势（近30天） -->
@@ -293,6 +307,10 @@
         FROM club
         WHERE del_flag = '0'
           AND create_time &gt;= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY day
         ORDER BY day ASC
     </select>
@@ -303,6 +321,10 @@
         FROM club c
         LEFT JOIN club_category cc ON c.category_id = cc.category_id
         WHERE c.del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND c.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         GROUP BY cc.category_name, cc.category_id
         ORDER BY count DESC
     </select>
@@ -313,6 +335,10 @@
                (SELECT count(*) FROM club_activity a WHERE a.club_id = c.club_id AND a.del_flag = '0') as activityCount
         FROM club c
         WHERE c.del_flag = '0'
+        <if test="clubIds != null and clubIds.size() > 0">
+            AND c.club_id in
+            <foreach collection="clubIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+        </if>
         ORDER BY c.member_count DESC
         LIMIT 10
     </select>

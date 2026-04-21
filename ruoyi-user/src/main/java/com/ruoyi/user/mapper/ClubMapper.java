@@ -98,21 +98,23 @@ public interface ClubMapper {
 
         /** 社团统计 - 按状态统计 */
         List<Map<String, Object>> selectClubStatusStat(@Param("beginTime") String beginTime,
-                        @Param("endTime") String endTime);
+                        @Param("endTime") String endTime,
+                        @Param("clubIds") List<Long> clubIds);
 
         /** 社团统计 - 招新中数量 */
         Integer selectClubRecruitingCount(@Param("beginTime") String beginTime,
-                        @Param("endTime") String endTime);
+                        @Param("endTime") String endTime,
+                        @Param("clubIds") List<Long> clubIds);
 
         /** 社团统计 - 今日数据 */
-        Map<String, Object> selectClubTodayStats();
+        Map<String, Object> selectClubTodayStats(@Param("clubIds") List<Long> clubIds);
 
         /** 社团统计 - 创建趋势 */
-        List<Map<String, Object>> selectClubTrendStat();
+        List<Map<String, Object>> selectClubTrendStat(@Param("clubIds") List<Long> clubIds);
 
         /** 社团统计 - 分类分布 */
-        List<Map<String, Object>> selectClubCategoryStat();
+        List<Map<String, Object>> selectClubCategoryStat(@Param("clubIds") List<Long> clubIds);
 
         /** 社团统计 - 成员数排名Top10 */
-        List<Map<String, Object>> selectClubMemberRanking();
+        List<Map<String, Object>> selectClubMemberRanking(@Param("clubIds") List<Long> clubIds);
 }

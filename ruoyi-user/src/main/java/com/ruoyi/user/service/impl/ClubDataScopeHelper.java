@@ -91,4 +91,15 @@ public class ClubDataScopeHelper {
             return Collections.singletonList(-1L);
         }
     }
+
+    /**
+     * 判断当前用户是否可访问指定社团数据。
+     *
+     * @param clubId 社团ID
+     * @return true=可访问，false=不可访问
+     */
+    public boolean isManagedClub(Long clubId) {
+        List<Long> managedClubIds = getManagedClubIds();
+        return managedClubIds == null || (clubId != null && managedClubIds.contains(clubId));
+    }
 }

@@ -1,10 +1,12 @@
 package com.ruoyi.user.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.user.domain.ClubApplication;
 import com.ruoyi.user.domain.ClubMember;
@@ -36,7 +38,12 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      */
     @Override
     public ClubApplication selectClubApplicationById(Long applicationId) {
-        return clubApplicationMapper.selectClubApplicationById(applicationId);
+        ClubApplication application = clubApplicationMapper.selectClubApplicationById(applicationId);
+        if (application == null) {
+            return null;
+        }
+        ensureApplicationInScope(application, "无权查看该入社申请");
+        return application;
     }
 
     /**
@@ -85,6 +92,13 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      */
     @Override
     public int updateClubApplication(ClubApplication clubApplication) {
+        ClubApplication existing = requireApplication(clubApplication.getApplicationId());
+        ensureApplicationInScope(existing, "无权操作该入社申请");
+        if (dataScopeHelper.getManagedClubIds() != null
+                && clubApplication.getClubId() != null
+                && !clubApplication.getClubId().equals(existing.getClubId())) {
+            throw new ServiceException("不允许修改申请所属社团");
+        }
         clubApplication.setUpdateTime(DateUtils.getNowDate());
         return clubApplicationMapper.updateClubApplication(clubApplication);
     }
@@ -95,6 +109,13 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
     @Override
     @Transactional
     public int reviewApplication(ClubApplication clubApplication) {
+        ClubApplication existing = requireApplication(clubApplication.getApplicationId());
+        ensureApplicationInScope(existing, "无权审核该入社申请");
+        if (dataScopeHelper.getManagedClubIds() != null
+                && clubApplication.getClubId() != null
+                && !clubApplication.getClubId().equals(existing.getClubId())) {
+            throw new ServiceException("不允许修改申请所属社团");
+        }
         clubApplication.setReviewTime(DateUtils.getNowDate());
         clubApplication.setUpdateTime(DateUtils.getNowDate());
 
@@ -134,7 +155,22 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      */
     @Override
     public int deleteClubApplicationByIds(Long[] applicationIds) {
-        return clubApplicationMapper.deleteClubApplicationByIds(applicationIds);
+        List<Long> managedClubIds = dataScopeHelper.getManagedClubIds();
+        if (managedClubIds == null) {
+            return clubApplicationMapper.deleteClubApplicationByIds(applicationIds);
+        }
+
+        List<Long> authorizedIds = new ArrayList<>();
+        for (Long applicationId : applicationIds) {
+            ClubApplication application = clubApplicationMapper.selectClubApplicationById(applicationId);
+            if (application != null && managedClubIds.contains(application.getClubId())) {
+                authorizedIds.add(applicationId);
+            }
+        }
+        if (authorizedIds.size() != applicationIds.length) {
+            throw new ServiceException("包含不存在或无权限操作的入社申请");
+        }
+        return clubApplicationMapper.deleteClubApplicationByIds(authorizedIds.toArray(new Long[0]));
     }
 
     /**
@@ -145,6 +181,8 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
      */
     @Override
     public int deleteClubApplicationById(Long applicationId) {
+        ClubApplication application = requireApplication(applicationId);
+        ensureApplicationInScope(application, "无权删除该入社申请");
         return clubApplicationMapper.deleteClubApplicationById(applicationId);
     }
 
@@ -178,5 +216,19 @@ public class ClubApplicationServiceImpl implements IClubApplicationService {
         map.put("clubRankingStat", clubApplicationMapper.selectClubRankingStat(managedClubIds));
 
         return map;
+    }
+
+    private ClubApplication requireApplication(Long applicationId) {
+        ClubApplication application = clubApplicationMapper.selectClubApplicationById(applicationId);
+        if (application == null) {
+            throw new ServiceException("入社申请不存在");
+        }
+        return application;
+    }
+
+    private void ensureApplicationInScope(ClubApplication application, String message) {
+        if (application == null || !dataScopeHelper.isManagedClub(application.getClubId())) {
+            throw new ServiceException(message);
+        }
     }
 }

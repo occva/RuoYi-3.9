@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,7 +31,10 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.user.domain.AiToolTrace;
 import com.ruoyi.user.domain.ChatMessage;
+import com.ruoyi.user.domain.ChatMessageView;
+import com.ruoyi.user.domain.ChatSessionSummary;
 import com.ruoyi.user.domain.ClubApplication;
 import com.ruoyi.user.domain.ClubCreateApplication;
 import com.ruoyi.user.domain.ClubFavorite;
@@ -43,6 +47,9 @@ import com.ruoyi.user.service.IClubApplicationService;
 import com.ruoyi.user.service.IClubCreateApplicationService;
 import com.ruoyi.user.service.IClubFavoriteService;
 import com.ruoyi.user.service.IClubService;
+import com.ruoyi.user.service.impl.AiToolRegistry.ToolExecution;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.system.service.ISysUserService;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -58,6 +65,7 @@ import okhttp3.Response;
 public class AiChatServiceImpl implements IAiChatService {
     private static final Logger log = LoggerFactory.getLogger(AiChatServiceImpl.class);
     private static final int CONTEXT_MESSAGE_LIMIT = 10;
+    private static final int TOOL_CALL_ROUND_LIMIT = 2;
     private static final int UPSTREAM_ERROR_BODY_MAX_LEN = 600;
     private static final AtomicInteger SSE_THREAD_INDEX = new AtomicInteger(1);
 
@@ -99,6 +107,9 @@ public class AiChatServiceImpl implements IAiChatService {
     private ChatMessageRepository chatMessageRepository;
 
     @Autowired
+    private AiToolRegistry aiToolRegistry;
+
+    @Autowired
     private IClubService clubService;
 
     @Autowired
@@ -112,6 +123,9 @@ public class AiChatServiceImpl implements IAiChatService {
 
     @Autowired
     private IClubCreateApplicationService clubCreateApplicationService;
+
+    @Autowired
+    private ISysUserService sysUserService;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -144,11 +158,12 @@ public class AiChatServiceImpl implements IAiChatService {
 
         long startTime = System.currentTimeMillis();
         try {
-            String reply = callLlmApi(buildContextMessages(sessionId, userId, guestId));
-            ChatMessage aiMsg = new ChatMessage(sessionId, userId, guestId, "assistant", reply);
+            AiChatResult result = callLlmApiWithTools(buildContextMessages(sessionId, userId, guestId), userId);
+            ChatMessage aiMsg = new ChatMessage(sessionId, userId, guestId, "assistant", result.getContent());
             aiMsg.setResponseTime(System.currentTimeMillis() - startTime);
+            aiMsg.setTools(result.getTraces());
             chatMessageRepository.save(aiMsg);
-            return reply;
+            return result.getContent();
         } catch (Exception e) {
             log.error("AI chat failed", e);
             String fallback = "AI 服务暂时不可用，请稍后重试。";
@@ -178,69 +193,16 @@ public class AiChatServiceImpl implements IAiChatService {
 
                 long startTime = System.currentTimeMillis();
                 StringBuilder fullReply = new StringBuilder();
-
-                JSONObject requestBody = new JSONObject();
-                requestBody.put("model", model);
-                requestBody.put("messages", buildContextMessages(sessionId, userId, guestId));
-                requestBody.put("temperature", temperature);
-                requestBody.put("stream", true);
-                appendReasoningOption(requestBody);
-
-                Request request = new Request.Builder()
-                        .url(apiUrl)
-                        .addHeader("Authorization", "Bearer " + apiKey)
-                        .addHeader("Content-Type", "application/json")
-                        .post(RequestBody.create(requestBody.toJSONString(), MediaType.parse("application/json")))
-                        .build();
-
-                try (Response response = httpClient.newCall(request).execute()) {
-                    if (!response.isSuccessful()) {
-                        String errorBody = response.body() != null ? response.body().string() : "";
-                        log.error("AI stream API failed: code={}, body={}", response.code(), truncate(errorBody));
-                        emitter.send(SseEmitter.event().data(resolveUpstreamErrorMessage(response.code())));
-                        emitter.send(SseEmitter.event().data("[DONE]"));
-                        emitter.complete();
-                        return;
-                    }
-                    if (response.body() == null) {
-                        log.error("AI stream API failed: code={}, empty body", response.code());
-                        emitter.send(SseEmitter.event().data("AI 服务响应异常，请稍后重试。"));
-                        emitter.send(SseEmitter.event().data("[DONE]"));
-                        emitter.complete();
-                        return;
-                    }
-
-                    BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(response.body().byteStream(), StandardCharsets.UTF_8));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (!line.startsWith("data: ")) {
-                            continue;
-                        }
-                        String data = line.substring(6).trim();
-                        if ("[DONE]".equals(data)) {
-                            break;
-                        }
-                        try {
-                            JSONObject chunkObj = JSON.parseObject(data);
-                            JSONArray choices = chunkObj.getJSONArray("choices");
-                            if (choices == null || choices.isEmpty()) {
-                                continue;
-                            }
-                            JSONObject firstChoice = choices.getJSONObject(0);
-                            JSONObject delta = firstChoice.getJSONObject("delta");
-                            if (delta == null || !delta.containsKey("content")) {
-                                continue;
-                            }
-                            String content = delta.getString("content");
-                            if (content == null) {
-                                continue;
-                            }
-                            fullReply.append(content);
-                            emitter.send(SseEmitter.event().data(content));
-                        } catch (Exception ignored) {
-                        }
-                    }
+                AiToolPreparedMessages prepared = prepareToolAugmentedMessages(
+                        buildContextMessages(sessionId, userId, guestId), userId, false);
+                for (AiToolTrace trace : prepared.getTraces()) {
+                    emitter.send(SseEmitter.event().data(buildToolEvent(trace)));
+                }
+                if (StringUtils.isNotEmpty(prepared.getFinalContent())) {
+                    fullReply.append(prepared.getFinalContent());
+                    emitTextChunks(emitter, prepared.getFinalContent());
+                } else {
+                    streamFinalReply(prepared.getMessages(), emitter, fullReply);
                 }
 
                 emitter.send(SseEmitter.event().data("[DONE]"));
@@ -248,6 +210,7 @@ public class AiChatServiceImpl implements IAiChatService {
 
                 ChatMessage aiMsg = new ChatMessage(sessionId, userId, guestId, "assistant", fullReply.toString());
                 aiMsg.setResponseTime(System.currentTimeMillis() - startTime);
+                aiMsg.setTools(prepared.getTraces());
                 chatMessageRepository.save(aiMsg);
             } catch (Exception e) {
                 log.error("SSE chat failed", e);
@@ -266,8 +229,69 @@ public class AiChatServiceImpl implements IAiChatService {
     }
 
     @Override
-    public List<ChatMessage> getHistory(String sessionId, Long userId) {
-        return chatMessageRepository.findBySessionIdAndUserIdOrderByCreateTimeAsc(sessionId, userId);
+    public List<ChatMessageView> getHistory(String sessionId, Long userId, String guestId, String userName) {
+        List<ChatMessage> messages;
+        if (userId != null) {
+            messages = chatMessageRepository.findBySessionIdAndUserIdOrderByCreateTimeAsc(sessionId, userId);
+        } else if (StringUtils.isNotEmpty(guestId)) {
+            messages = chatMessageRepository.findBySessionIdAndGuestIdAndUserIdIsNullOrderByCreateTimeAsc(sessionId, guestId);
+        } else {
+            messages = Collections.emptyList();
+        }
+        String displayName = StringUtils.isNotEmpty(userName) ? userName : null;
+        return messages.stream()
+                .map(message -> new ChatMessageView(message, displayName))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public List<ChatSessionSummary> getSessions(Long userId, String guestId) {
+        List<ChatMessage> messages;
+        if (userId != null) {
+            messages = chatMessageRepository.findByUserIdOrderByCreateTimeDesc(userId);
+        } else if (StringUtils.isNotEmpty(guestId)) {
+            messages = chatMessageRepository.findByGuestIdAndUserIdIsNullOrderByCreateTimeDesc(guestId);
+        } else {
+            return Collections.emptyList();
+        }
+
+        Map<String, ChatSessionSummary> sessions = new LinkedHashMap<>();
+        for (ChatMessage message : messages) {
+            if (StringUtils.isEmpty(message.getSessionId())) {
+                continue;
+            }
+            ChatSessionSummary summary = sessions.computeIfAbsent(message.getSessionId(), ChatSessionSummary::new);
+            summary.setMessageCount(summary.getMessageCount() + 1);
+            if (summary.getLatestTime() == null) {
+                summary.setLatestTime(message.getCreateTime());
+                summary.setLatestContent(truncateText(message.getContent(), 80));
+            }
+            if ("user".equals(message.getRole()) && StringUtils.isNotEmpty(message.getContent())) {
+                summary.setTitle(truncateText(message.getContent(), 24));
+            }
+        }
+
+        List<ChatSessionSummary> result = new ArrayList<>(sessions.values());
+        for (ChatSessionSummary summary : result) {
+            if (StringUtils.isEmpty(summary.getTitle())) {
+                summary.setTitle("新对话");
+            }
+        }
+        return result.size() > 30 ? result.subList(0, 30) : result;
+    }
+
+    @Override
+    public void deleteSession(String sessionId, Long userId, String guestId) {
+        if (StringUtils.isEmpty(sessionId)) {
+            return;
+        }
+        if (userId != null) {
+            chatMessageRepository.deleteBySessionIdAndUserId(sessionId, userId);
+            return;
+        }
+        if (StringUtils.isNotEmpty(guestId)) {
+            chatMessageRepository.deleteBySessionIdAndGuestIdAndUserIdIsNull(sessionId, guestId);
+        }
     }
 
     @Override
@@ -295,9 +319,9 @@ public class AiChatServiceImpl implements IAiChatService {
         sseExecutor.shutdown();
     }
 
-    private List<Map<String, String>> buildContextMessages(String sessionId, Long userId, String guestId) {
-        List<Map<String, String>> messages = new ArrayList<>();
-        messages.add(Map.of("role", "system", "content", buildSystemPrompt(userId)));
+    private List<JSONObject> buildContextMessages(String sessionId, Long userId, String guestId) {
+        List<JSONObject> messages = new ArrayList<>();
+        messages.add(message("system", buildSystemPrompt(userId)));
 
         List<ChatMessage> history = queryContextHistory(sessionId, userId, guestId);
         if (history == null || history.isEmpty()) {
@@ -310,9 +334,16 @@ public class AiChatServiceImpl implements IAiChatService {
             if ("system".equals(msg.getRole())) {
                 continue;
             }
-            messages.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
+            messages.add(message(msg.getRole(), msg.getContent()));
         }
         return messages;
+    }
+
+    private JSONObject message(String role, String content) {
+        JSONObject msg = new JSONObject();
+        msg.put("role", role);
+        msg.put("content", content == null ? "" : content);
+        return msg;
     }
 
     private List<ChatMessage> queryContextHistory(String sessionId, Long userId, String guestId) {
@@ -331,9 +362,14 @@ public class AiChatServiceImpl implements IAiChatService {
 
         sb.append("你是社团管理助手。\n");
         sb.append("只能基于提供的实时数据库信息回答，不得虚构社团、活动、时间或地点。\n");
+        sb.append("需要查询社团、活动或当前用户个人数据时，优先调用可用工具获取精确数据，再基于工具结果回答。\n");
+        sb.append("不要要求用户提供内部账号标识，也不要输出内部账号标识；当前登录账号由系统自动注入工具，展示身份时只使用 username。\n");
         sb.append("回答必须使用 Markdown 格式，直接输出可渲染的 Markdown 内容。\n");
-        sb.append("涉及社团、活动、流程说明时，使用编号列表（1. 2. 3.），字段使用子列表（- 字段：值）。\n");
-        sb.append("禁止使用“|”作为分隔符，统一使用中文标点和换行。\n");
+        sb.append("请输出标准 Markdown：标题、列表、表格、代码块都必须使用规范语法；块级元素前后保留空行。\n");
+        sb.append("Markdown 标题必须独占一行，# 后必须有空格，例如：### 社团名称建议。\n");
+        sb.append("Markdown 表格必须独立成块，表头、分隔行、数据行各占一行，例如：| 字段 | 内容 |、| --- | --- |。\n");
+        sb.append("涉及社团、活动、流程说明时，可以使用编号列表、字段子列表或 Markdown 表格，按内容选择最清晰的格式。\n");
+        sb.append("每个编号条目必须独立换行；条目内的社团、地点、时间、状态等字段必须另起一行，使用“- 字段：值”，不要挤在同一行。\n");
         sb.append("建议结构：先给一行结论，再给编号列表；每个条目下用子列表展示字段。\n");
         sb.append("用户询问“进行中活动”时，优先使用 [REALTIME_ONGOING_ACTIVITIES]。\n");
         sb.append("用户询问“可报名活动/报名时间区间”时，优先使用 [REALTIME_UPCOMING_ACTIVITIES] 并明确报名时间区间。\n");
@@ -460,10 +496,10 @@ public class AiChatServiceImpl implements IAiChatService {
         sb.append("4. 近期结束活动：club_activity（status='2' and del_flag='0'，按 start_time 倒序）\n");
         sb.append("5. 我加入的社团：按当前用户 member 关系查询 club\n");
         sb.append("6. 我管理的社团：club（president_id=当前用户 and del_flag='0'）\n");
-        sb.append("7. 我的收藏：club_favorite（user_id=当前用户）\n");
-        sb.append("8. 我的入社申请：club_application（user_id=当前用户 and del_flag='0'）\n");
-        sb.append("9. 我的建社申请：club_create_application（applicant_user_id=当前用户 and del_flag='0'）\n");
-        sb.append("10. 我报名的活动：club_activity + club_activity_registration（user_id=当前用户 and registration.status!='2'），包含报名时间区间与我的报名时间\n");
+        sb.append("7. 我的收藏：当前登录账号收藏的社团\n");
+        sb.append("8. 我的入社申请：当前登录账号提交的入社申请\n");
+        sb.append("9. 我的建社申请：当前登录账号提交的建社申请\n");
+        sb.append("10. 我报名的活动：当前登录账号报名且未取消的活动，包含报名时间区间与我的报名时间\n");
         sb.append("11. 活动报名时间区间字段：registration_start 至 registration_end\n");
         sb.append("12. 查询时间：").append(formatDateTime(new Date())).append("\n");
         return sb.toString();
@@ -484,7 +520,7 @@ public class AiChatServiceImpl implements IAiChatService {
         }
 
         sb.append("[CURRENT_USER_DATA]\n");
-        sb.append("user_id=").append(userId).append("\n");
+        sb.append("username=").append(resolveUserName(userId)).append("\n");
 
         try {
             List<Club> myClubs = clubService.selectClubListByUserId(userId);
@@ -638,6 +674,21 @@ public class AiChatServiceImpl implements IAiChatService {
         return "当前数据源暂无记录。";
     }
 
+    private String resolveUserName(Long userId) {
+        if (userId == null) {
+            return "未登录";
+        }
+        try {
+            SysUser user = sysUserService.selectUserById(userId);
+            if (user != null && StringUtils.isNotEmpty(user.getUserName())) {
+                return user.getUserName();
+            }
+        } catch (Exception e) {
+            log.warn("Resolve username for AI prompt failed, userId={}", userId, e);
+        }
+        return "已登录用户";
+    }
+
     private String nvl(String value, String defaultValue) {
         return StringUtils.isEmpty(value) ? defaultValue : value;
     }
@@ -701,12 +752,102 @@ public class AiChatServiceImpl implements IAiChatService {
         return mapApplicationStatus(status);
     }
 
-    private String callLlmApi(List<Map<String, String>> messages) {
+    private AiChatResult callLlmApiWithTools(List<JSONObject> messages, Long userId) {
+        AiToolPreparedMessages prepared = prepareToolAugmentedMessages(messages, userId, true);
+        if (StringUtils.isNotEmpty(prepared.getFinalContent())) {
+            return new AiChatResult(prepared.getFinalContent(), prepared.getTraces());
+        }
+        String reply = callLlmApi(prepared.getMessages(), false, false);
+        return new AiChatResult(reply, prepared.getTraces());
+    }
+
+    private AiToolPreparedMessages prepareToolAugmentedMessages(List<JSONObject> baseMessages, Long userId,
+            boolean resolveFinalContent) {
+        List<JSONObject> messages = new ArrayList<>(baseMessages);
+        List<AiToolTrace> traces = new ArrayList<>();
+        String preferredToolName = inferPreferredToolName(baseMessages);
+        String lastUserContent = getLastUserContent(baseMessages);
+
+        for (int round = 0; round < TOOL_CALL_ROUND_LIMIT; round++) {
+            JSONObject response = callLlmRaw(messages, false, true, preferredToolName);
+            preferredToolName = null;
+            if (response == null) {
+                break;
+            }
+            JSONObject assistantMessage = extractAssistantMessage(response);
+            if (assistantMessage == null) {
+                break;
+            }
+            assistantMessage.put("role", "assistant");
+            JSONArray toolCalls = assistantMessage.getJSONArray("tool_calls");
+            if (toolCalls == null || toolCalls.isEmpty()) {
+                String content = assistantMessage.getString("content");
+                if (resolveFinalContent && StringUtils.isNotEmpty(content)) {
+                    return new AiToolPreparedMessages(messages, traces, content);
+                }
+                break;
+            }
+
+            messages.add(assistantMessage);
+            for (int i = 0; i < toolCalls.size(); i++) {
+                JSONObject toolCall = toolCalls.getJSONObject(i);
+                JSONObject function = toolCall.getJSONObject("function");
+                String toolName = function == null ? null : function.getString("name");
+                String arguments = function == null ? null : function.getString("arguments");
+                ToolExecution execution = aiToolRegistry.execute(toolName, arguments, userId, lastUserContent);
+                traces.add(execution.getTrace());
+
+                JSONObject toolMessage = new JSONObject();
+                toolMessage.put("role", "tool");
+                toolMessage.put("tool_call_id", toolCall.getString("id"));
+                toolMessage.put("name", toolName);
+                toolMessage.put("content", execution.getResult().toJSONString());
+                messages.add(toolMessage);
+            }
+        }
+
+        return new AiToolPreparedMessages(messages, traces, null);
+    }
+
+    private String callLlmApi(List<JSONObject> messages, boolean stream, boolean includeTools) {
+        JSONObject response = callLlmRaw(messages, stream, includeTools);
+        if (response == null) {
+            return "AI 服务暂时不可用，请稍后重试。";
+        }
+        JSONObject assistantMessage = extractAssistantMessage(response);
+        if (assistantMessage != null) {
+            String content = assistantMessage.getString("content");
+            if (StringUtils.isNotEmpty(content)) {
+                return content;
+            }
+        }
+        return "AI 返回内容为空，请稍后重试。";
+    }
+
+    private JSONObject callLlmRaw(List<JSONObject> messages, boolean stream, boolean includeTools) {
+        return callLlmRaw(messages, stream, includeTools, null);
+    }
+
+    private JSONObject callLlmRaw(List<JSONObject> messages, boolean stream, boolean includeTools, String preferredToolName) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("model", model);
         requestBody.put("messages", messages);
-                requestBody.put("temperature", temperature);
-        requestBody.put("stream", false);
+        requestBody.put("temperature", temperature);
+        requestBody.put("stream", stream);
+        if (includeTools) {
+            requestBody.put("tools", aiToolRegistry.buildToolDefinitions());
+            if (StringUtils.isNotEmpty(preferredToolName)) {
+                JSONObject function = new JSONObject();
+                function.put("name", preferredToolName);
+                JSONObject toolChoice = new JSONObject();
+                toolChoice.put("type", "function");
+                toolChoice.put("function", function);
+                requestBody.put("tool_choice", toolChoice);
+            } else {
+                requestBody.put("tool_choice", "auto");
+            }
+            requestBody.put("parallel_tool_calls", false);
+        }
         appendReasoningOption(requestBody);
 
         Request request = new Request.Builder()
@@ -720,31 +861,183 @@ public class AiChatServiceImpl implements IAiChatService {
             if (!response.isSuccessful()) {
                 String errorBody = response.body() != null ? response.body().string() : "";
                 log.error("LLM API failed: code={}, body={}", response.code(), truncate(errorBody));
-                return resolveUpstreamErrorMessage(response.code());
+                return syntheticAssistantResponse(resolveUpstreamErrorMessage(response.code()));
             }
             if (response.body() == null) {
                 log.error("LLM API failed: code={}, empty body", response.code());
-                return "AI 服务响应异常，请稍后重试。";
+                return syntheticAssistantResponse("AI 服务响应异常，请稍后重试。");
             }
 
             String body = response.body().string();
-            JSONObject json = JSON.parseObject(body);
-            JSONArray choices = json.getJSONArray("choices");
-            if (choices != null && !choices.isEmpty()) {
-                JSONObject firstChoice = choices.getJSONObject(0);
-                JSONObject msgObj = firstChoice.getJSONObject("message");
-                if (msgObj != null) {
-                    String content = msgObj.getString("content");
-                    if (StringUtils.isNotEmpty(content)) {
-                        return content;
-                    }
-                }
-            }
-            return "AI 返回内容为空，请稍后重试。";
+            return JSON.parseObject(body);
         } catch (Exception e) {
             log.error("Call LLM API failed", e);
-            return "AI 服务暂时不可用，请稍后重试。";
+            return null;
         }
+    }
+
+    private String inferPreferredToolName(List<JSONObject> messages) {
+        String content = getLastUserContent(messages);
+        if (StringUtils.isEmpty(content)) {
+            return null;
+        }
+        String normalized = content.toLowerCase();
+        if (containsAny(normalized, "我报名", "我的报名", "报名了哪些活动", "已报名活动")) {
+            return "list_my_registered_activities";
+        }
+        if (containsAny(normalized, "我的入社申请", "入社申请状态", "加入申请状态")) {
+            return "list_my_applications";
+        }
+        if (containsAny(normalized, "我的收藏", "收藏的社团")) {
+            return "list_my_favorites";
+        }
+        if (containsAny(normalized, "我的社团", "我加入的社团", "我管理的社团")) {
+            return "list_my_clubs";
+        }
+        if (containsAny(normalized, "活动", "讲座", "工作坊", "报名时间", "近期有什么")) {
+            return "list_activities";
+        }
+        if (containsAny(normalized, "社团", "协会", "俱乐部", "推荐")) {
+            return "list_clubs";
+        }
+        return null;
+    }
+
+    private String getLastUserContent(List<JSONObject> messages) {
+        for (int i = messages.size() - 1; i >= 0; i--) {
+            JSONObject message = messages.get(i);
+            if ("user".equals(message.getString("role"))) {
+                return message.getString("content");
+            }
+        }
+        return null;
+    }
+
+    private boolean containsAny(String text, String... keywords) {
+        for (String keyword : keywords) {
+            if (text.contains(keyword.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void streamFinalReply(List<JSONObject> messages, SseEmitter emitter, StringBuilder fullReply) throws Exception {
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("model", model);
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", temperature);
+        requestBody.put("stream", true);
+        appendReasoningOption(requestBody);
+
+        Request request = new Request.Builder()
+                .url(apiUrl)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .post(RequestBody.create(requestBody.toJSONString(), MediaType.parse("application/json")))
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "";
+                log.error("AI stream API failed: code={}, body={}", response.code(), truncate(errorBody));
+                String errorMessage = resolveUpstreamErrorMessage(response.code());
+                fullReply.append(errorMessage);
+                emitter.send(SseEmitter.event().data(errorMessage));
+                return;
+            }
+            if (response.body() == null) {
+                log.error("AI stream API failed: code={}, empty body", response.code());
+                String errorMessage = "AI 服务响应异常，请稍后重试。";
+                fullReply.append(errorMessage);
+                emitter.send(SseEmitter.event().data(errorMessage));
+                return;
+            }
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(response.body().byteStream(), StandardCharsets.UTF_8));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.startsWith("data: ")) {
+                    continue;
+                }
+                String data = line.substring(6).trim();
+                if ("[DONE]".equals(data)) {
+                    break;
+                }
+                try {
+                    JSONObject chunkObj = JSON.parseObject(data);
+                    JSONArray choices = chunkObj.getJSONArray("choices");
+                    if (choices == null || choices.isEmpty()) {
+                        continue;
+                    }
+                    JSONObject firstChoice = choices.getJSONObject(0);
+                    JSONObject delta = firstChoice.getJSONObject("delta");
+                    if (delta == null || !delta.containsKey("content")) {
+                        continue;
+                    }
+                    String content = delta.getString("content");
+                    if (content == null) {
+                        continue;
+                    }
+                    fullReply.append(content);
+                    emitter.send(SseEmitter.event().data(buildChunkEvent(content)));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private void emitTextChunks(SseEmitter emitter, String text) throws Exception {
+        if (text == null) {
+            return;
+        }
+        int offset = 0;
+        int chunkSize = 12;
+        while (offset < text.length()) {
+            int end = Math.min(text.length(), offset + chunkSize);
+            emitter.send(SseEmitter.event().data(buildChunkEvent(text.substring(offset, end))));
+            offset = end;
+        }
+    }
+
+    private JSONObject extractAssistantMessage(JSONObject response) {
+        JSONArray choices = response.getJSONArray("choices");
+        if (choices == null || choices.isEmpty()) {
+            return null;
+        }
+        JSONObject firstChoice = choices.getJSONObject(0);
+        return firstChoice == null ? null : firstChoice.getJSONObject("message");
+    }
+
+    private String buildToolEvent(AiToolTrace trace) {
+        JSONObject event = new JSONObject();
+        event.put("type", "tool");
+        event.put("tool", trace);
+        return event.toJSONString();
+    }
+
+    private String buildChunkEvent(String content) {
+        JSONObject event = new JSONObject();
+        event.put("type", "chunk");
+        event.put("content", content == null ? "" : content);
+        return event.toJSONString();
+    }
+
+    private JSONObject syntheticAssistantResponse(String content) {
+        JSONObject message = new JSONObject();
+        message.put("role", "assistant");
+        message.put("content", content);
+
+        JSONObject choice = new JSONObject();
+        choice.put("message", message);
+
+        JSONArray choices = new JSONArray();
+        choices.add(choice);
+
+        JSONObject response = new JSONObject();
+        response.put("choices", choices);
+        return response;
     }
 
     private boolean isAiApiConfigured() {
@@ -803,5 +1096,48 @@ public class AiChatServiceImpl implements IAiChatService {
             return "你可以在活动页面查看近期活动并完成报名。";
         }
         return "你好，我是社团助手。你可以问我社团信息、活动安排、加入与创建流程。";
+    }
+
+    private static class AiChatResult {
+        private final String content;
+        private final List<AiToolTrace> traces;
+
+        private AiChatResult(String content, List<AiToolTrace> traces) {
+            this.content = content;
+            this.traces = traces;
+        }
+
+        private String getContent() {
+            return content;
+        }
+
+        @SuppressWarnings("unused")
+        private List<AiToolTrace> getTraces() {
+            return traces;
+        }
+    }
+
+    private static class AiToolPreparedMessages {
+        private final List<JSONObject> messages;
+        private final List<AiToolTrace> traces;
+        private final String finalContent;
+
+        private AiToolPreparedMessages(List<JSONObject> messages, List<AiToolTrace> traces, String finalContent) {
+            this.messages = messages;
+            this.traces = traces;
+            this.finalContent = finalContent;
+        }
+
+        private List<JSONObject> getMessages() {
+            return messages;
+        }
+
+        private List<AiToolTrace> getTraces() {
+            return traces;
+        }
+
+        private String getFinalContent() {
+            return finalContent;
+        }
     }
 }

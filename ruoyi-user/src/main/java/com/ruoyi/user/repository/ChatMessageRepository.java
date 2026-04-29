@@ -17,6 +17,8 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
 
     List<ChatMessage> findBySessionIdAndUserIdOrderByCreateTimeAsc(String sessionId, Long userId);
 
+    List<ChatMessage> findBySessionIdAndGuestIdAndUserIdIsNullOrderByCreateTimeAsc(String sessionId, String guestId);
+
     /**
      * 按会话ID查询最近N条消息（按时间倒序，用于构建上下文）
      */
@@ -31,9 +33,15 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
      */
     List<ChatMessage> findByUserIdOrderByCreateTimeDesc(Long userId);
 
+    List<ChatMessage> findByGuestIdAndUserIdIsNullOrderByCreateTimeDesc(String guestId);
+
     Optional<ChatMessage> findFirstByUserIdOrderByCreateTimeDesc(Long userId);
 
     long countByGuestIdAndRole(String guestId, String role);
 
     long countBySessionIdAndUserIdIsNullAndRole(String sessionId, String role);
+
+    void deleteBySessionIdAndUserId(String sessionId, Long userId);
+
+    void deleteBySessionIdAndGuestIdAndUserIdIsNull(String sessionId, String guestId);
 }

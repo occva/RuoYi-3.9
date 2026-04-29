@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,7 +26,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.user.domain.ChatMessage;
+import com.ruoyi.user.domain.ChatMessageView;
+import com.ruoyi.user.domain.ChatSessionSummary;
 import com.ruoyi.user.service.IAiChatService;
 
 /**
@@ -136,21 +138,59 @@ public class AppAiChatController extends BaseController {
     }
 
     /**
-     * 获取会话历史（仅登录用户）
+     * 获取会话历史
      */
     @GetMapping("/chat/history")
-    public AjaxResult history(@RequestParam String sessionId) {
+    public AjaxResult history(@RequestParam String sessionId, HttpServletRequest servletRequest) {
         if (sessionId == null || sessionId.trim().isEmpty()) {
             return error("会话ID不能为空");
         }
 
         Long userId = resolveCurrentUserIdSafely();
-        if (userId == null) {
-            return AjaxResult.error(403, "请先登录后查看历史消息");
-        }
+        String normalizedSessionId = sessionId.trim();
+        String normalizedGuestId = userId == null ? resolveGuestId(servletRequest, normalizedSessionId) : null;
 
-        List<ChatMessage> messages = aiChatService.getHistory(sessionId.trim(), userId);
+        String userName = userId == null ? null : getUsername();
+        List<ChatMessageView> messages = aiChatService.getHistory(normalizedSessionId, userId, normalizedGuestId, userName);
         return success(messages);
+    }
+
+    /**
+     * 获取会话列表
+     */
+    @GetMapping("/chat/sessions")
+    public AjaxResult sessions(HttpServletRequest servletRequest) {
+        Long userId = resolveCurrentUserIdSafely();
+        String normalizedGuestId = userId == null ? resolveGuestId(servletRequest, null) : null;
+        List<ChatSessionSummary> sessions = aiChatService.getSessions(userId, normalizedGuestId);
+        return success(sessions);
+    }
+
+    /**
+     * 删除会话
+     */
+    @DeleteMapping("/chat/session")
+    public AjaxResult deleteSession(@RequestParam String sessionId, HttpServletRequest servletRequest) {
+        return doDeleteSession(sessionId, servletRequest);
+    }
+
+    /**
+     * 删除会话（兼容不方便发送 DELETE 的客户端）
+     */
+    @PostMapping("/chat/session/delete")
+    public AjaxResult deleteSessionByPost(@RequestParam String sessionId, HttpServletRequest servletRequest) {
+        return doDeleteSession(sessionId, servletRequest);
+    }
+
+    private AjaxResult doDeleteSession(String sessionId, HttpServletRequest servletRequest) {
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            return error("会话ID不能为空");
+        }
+        Long userId = resolveCurrentUserIdSafely();
+        String normalizedSessionId = sessionId.trim();
+        String normalizedGuestId = userId == null ? resolveGuestId(servletRequest, normalizedSessionId) : null;
+        aiChatService.deleteSession(normalizedSessionId, userId, normalizedGuestId);
+        return success();
     }
 
     /**

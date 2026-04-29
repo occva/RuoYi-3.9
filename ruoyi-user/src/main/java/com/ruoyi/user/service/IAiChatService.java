@@ -1,6 +1,7 @@
 package com.ruoyi.user.service;
 
-import com.ruoyi.user.domain.ChatMessage;
+import com.ruoyi.user.domain.ChatMessageView;
+import com.ruoyi.user.domain.ChatSessionSummary;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -35,7 +36,25 @@ public interface IAiChatService {
      * @param sessionId 会话ID
      * @return 消息列表
      */
-    List<ChatMessage> getHistory(String sessionId, Long userId);
+    List<ChatMessageView> getHistory(String sessionId, Long userId, String guestId, String userName);
+
+    /**
+     * 获取会话列表
+     *
+     * @param userId  用户ID（可为空）
+     * @param guestId 访客ID（未登录时使用）
+     * @return 会话摘要列表
+     */
+    List<ChatSessionSummary> getSessions(Long userId, String guestId);
+
+    /**
+     * 删除会话
+     *
+     * @param sessionId 会话ID
+     * @param userId    用户ID（可为空）
+     * @param guestId   访客ID（未登录时使用）
+     */
+    void deleteSession(String sessionId, Long userId, String guestId);
 
     /**
      * 获取登录用户当前活跃会话ID（用于跨设备续聊）

@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * AI聊天消息 MongoDB Document
@@ -35,6 +36,9 @@ public class ChatMessage {
 
     /** AI响应耗时（毫秒） */
     private Long responseTime;
+
+    /** 工具调用轨迹 */
+    private List<AiToolTrace> tools;
 
     /** 创建时间 */
     private Date createTime;
@@ -109,6 +113,14 @@ public class ChatMessage {
 
     public void setResponseTime(Long responseTime) {
         this.responseTime = responseTime;
+    }
+
+    public List<AiToolTrace> getTools() {
+        return tools;
+    }
+
+    public void setTools(List<AiToolTrace> tools) {
+        this.tools = tools;
     }
 
     public Date getCreateTime() {
